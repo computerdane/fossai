@@ -27,7 +27,7 @@ export const HonoContext = createContext(defaultHonoContext);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Theme accentColor="iris">
+    <Theme accentColor="iris" appearance="dark">
       <HonoContext.Provider value={defaultHonoContext}>
         <TokenProvider>
           <BrowserRouter>
