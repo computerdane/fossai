@@ -3,6 +3,9 @@
   "workspaces": {
     "": {
       "name": "fossai",
+      "dependencies": {
+        "hono": "^4.7.9",
+      },
       "devDependencies": {
         "@types/bun": "latest",
       },
@@ -13,7 +16,8 @@
     "backend": {
       "name": "@fossai/backend",
       "dependencies": {
-        "hono": "^4.7.9",
+        "@hono/zod-validator": "^0.5.0",
+        "zod": "^3.24.4",
       },
       "devDependencies": {
         "@types/bun": "latest",
@@ -23,6 +27,7 @@
       "name": "@fossai/frontend",
       "version": "0.0.0",
       "dependencies": {
+        "@fossai/backend": "workspace:*",
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
         "react-router": "^7.6.0",
@@ -152,6 +157,8 @@
     "@fossai/backend": ["@fossai/backend@workspace:backend"],
 
     "@fossai/frontend": ["@fossai/frontend@workspace:frontend"],
+
+    "@hono/zod-validator": ["@hono/zod-validator@0.5.0", "", { "peerDependencies": { "hono": ">=3.9.0", "zod": "^3.19.1" } }, "sha512-ds5bW6DCgAnNHP33E3ieSbaZFd5dkV52ZjyaXtGoR06APFrCtzAsKZxTHwOrJNBdXsi0e5wNwo5L4nVEVnJUdg=="],
 
     "@humanfs/core": ["@humanfs/core@0.19.1", "", {}, "sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA=="],
 
