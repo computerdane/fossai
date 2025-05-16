@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import "./Login.css";
-import { HonoContext } from "./main";
+import { EnvContext, HonoContext } from "./main";
 import {
   Button,
   Flex,
@@ -16,6 +16,7 @@ import backdrop from "./assets/backdrop.png";
 
 function Login({ setToken }: { setToken: (token: string) => void }) {
   const client = useContext(HonoContext);
+  const env = useContext(EnvContext);
   const [errorMessage, setErrorMessage] = useState<string>();
 
   async function login(formData: FormData) {
@@ -40,10 +41,10 @@ function Login({ setToken }: { setToken: (token: string) => void }) {
         <Card>
           <Flex direction="column">
             <Heading size="8" align="center">
-              fossai
+              {env.LOGIN_PAGE_TITLE}
             </Heading>
             <Heading size="3" align="center" mb="5">
-              Free AI.
+              {env.LOGIN_PAGE_SUBTITLE}
             </Heading>
             <Tabs.Root
               defaultValue="login"

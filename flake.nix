@@ -25,6 +25,7 @@
                 bun
                 postgresql
               ];
+              shellHook = "bun i";
             };
         };
     };
