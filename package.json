@@ -1,7 +1,7 @@
 {
   "name": "fossai",
   "private": true,
-  "workspaces": ["frontend"],
+  "workspaces": ["frontend", "backend"],
   "devDependencies": {
     "@types/bun": "latest"
   },
