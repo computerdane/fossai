@@ -77,7 +77,9 @@ function Login({ setToken }: { setToken: (token: string) => void }) {
                     </Form.Control>
                   </Form.Field>
                   <Form.Submit asChild>
-                    <Button className="form-button">Login</Button>
+                    <Button className="form-button" color="iris">
+                      Login
+                    </Button>
                   </Form.Submit>
                 </Form.Root>
               </Tabs.Content>
@@ -118,7 +120,9 @@ function Login({ setToken }: { setToken: (token: string) => void }) {
                     </Form.Control>
                   </Form.Field>
                   <Form.Submit asChild>
-                    <Button className="form-button">Register</Button>
+                    <Button className="form-button" color="iris">
+                      Register
+                    </Button>
                   </Form.Submit>
                 </Form.Root>
               </Tabs.Content>

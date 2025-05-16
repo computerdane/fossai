@@ -57,7 +57,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Theme accentColor="iris" appearance="dark">
+    <Theme accentColor="gray" appearance="dark">
       <HonoContext.Provider value={defaultHonoContext}>
         <EnvProvider>
           <AuthProvider>
