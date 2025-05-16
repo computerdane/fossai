@@ -8,6 +8,7 @@ import getDb from "./db";
 import { createMiddleware } from "hono/factory";
 
 const db = await getDb();
+
 const anon = await db
   .selectFrom("person")
   .select("id")
@@ -56,15 +57,15 @@ const app = new Hono()
     async (c) => {
       const { email } = c.req.valid("json");
 
-      const id = await db
+      const person = await db
         .selectFrom("person")
         .select("id")
         .where("email", "=", email)
         .executeTakeFirst();
 
-      if (id) {
+      if (person) {
         const payload = {
-          id,
+          id: person.id,
           exp: Math.floor(Date.now() / 1000) + 60 * 5, // Token expires in 5 minutes
         };
         const token = await sign(payload, env.server.JWT_SECRET);
@@ -84,7 +85,10 @@ const app = new Hono()
         .values(input)
         .returningAll()
         .executeTakeFirst();
-      return c.json(person);
+
+      if (person) return c.json(person);
+
+      return c.json({ error: "unauthorized" }, 401);
     },
   )
   .get("/", (c) => c.json({ ok: true }));

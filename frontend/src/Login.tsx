@@ -18,6 +18,7 @@ function Login({ setToken }: { setToken: (token: string) => void }) {
   const client = useContext(HonoContext);
   const env = useContext(EnvContext);
   const [errorMessage, setErrorMessage] = useState<string>();
+  const [successMessage, setSuccessMessage] = useState<string>();
 
   async function login(formData: FormData) {
     const res = await client.login.$post({
@@ -28,6 +29,18 @@ function Login({ setToken }: { setToken: (token: string) => void }) {
       setToken(token);
     } else {
       setErrorMessage("Login failed.");
+    }
+  }
+
+  async function register(formData: FormData) {
+    const res = await client.register.$post({
+      json: {
+        email: formData.get("email")!.toString(),
+        first_name: formData.get("first_name")!.toString(),
+      },
+    });
+    if (res.ok) {
+      setSuccessMessage("Successfully registered!");
     }
   }
 
@@ -84,7 +97,7 @@ function Login({ setToken }: { setToken: (token: string) => void }) {
                 </Form.Root>
               </Tabs.Content>
               <Tabs.Content value="register">
-                <Form.Root className="form-root">
+                <Form.Root className="form-root" action={register}>
                   <Form.Field name="email">
                     <Flex align="baseline" justify="between">
                       <Form.Label>Email</Form.Label>
@@ -130,6 +143,11 @@ function Login({ setToken }: { setToken: (token: string) => void }) {
             {errorMessage && (
               <Text color="red" align="center" mt="2">
                 {errorMessage}
+              </Text>
+            )}
+            {successMessage && (
+              <Text color="green" align="center" mt="2">
+                {successMessage}
               </Text>
             )}
           </Flex>

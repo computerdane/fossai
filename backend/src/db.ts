@@ -3,7 +3,11 @@ import env from "./env";
 import { Kysely, PostgresDialect } from "kysely";
 import type { DB } from "./types";
 
+let db: Kysely<DB> | null = null;
+
 async function getDb() {
+  if (db) return db;
+
   const initSql = await Bun.file(`${import.meta.dir}/init.sql`).text();
 
   const client = new Client({
@@ -31,7 +35,7 @@ async function getDb() {
     }),
   });
 
-  const db = new Kysely<DB>({ dialect });
+  db = new Kysely<DB>({ dialect });
 
   const anon = await db
     .selectFrom("person")
