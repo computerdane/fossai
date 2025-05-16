@@ -1,0 +1,13 @@
+@reference "./index.css";
+
+.form-root {
+  @apply w-xs mt-2 flex flex-col gap-2;
+}
+
+.form-message {
+  @apply text-xs;
+}
+
+.form-button {
+  @apply mt-2;
+}

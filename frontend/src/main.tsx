@@ -1,11 +1,13 @@
 import { createContext, StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
+import "@radix-ui/themes/styles.css";
 import "./index.css";
 import App from "./App.tsx";
 import { BrowserRouter, Route, Routes } from "react-router";
 import Login from "./Login.tsx";
 import { hc } from "hono/client";
 import type { AppType } from "@fossai/backend";
+import { Theme } from "@radix-ui/themes";
 
 export const TokenContext = createContext<string>("");
 
@@ -25,14 +27,16 @@ export const HonoContext = createContext(defaultHonoContext);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <HonoContext.Provider value={defaultHonoContext}>
-      <TokenProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<App />} />
-          </Routes>
-        </BrowserRouter>
-      </TokenProvider>
-    </HonoContext.Provider>
+    <Theme accentColor="iris">
+      <HonoContext.Provider value={defaultHonoContext}>
+        <TokenProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<App />} />
+            </Routes>
+          </BrowserRouter>
+        </TokenProvider>
+      </HonoContext.Provider>
+    </Theme>
   </StrictMode>,
 );
