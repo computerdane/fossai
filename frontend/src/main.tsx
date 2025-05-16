@@ -12,7 +12,7 @@ import App from "./App.tsx";
 import { BrowserRouter, Route, Routes } from "react-router";
 import Login from "./Login.tsx";
 import { hc } from "hono/client";
-import type { AppType, ClientEnvType } from "@fossai/backend";
+import type { AppType, ClientEnvType, Person } from "@fossai/backend";
 import { Theme } from "@radix-ui/themes";
 
 const url = "http://localhost:3000";
@@ -23,6 +23,7 @@ export const EnvContext = createContext<ClientEnvType>(null!);
 function EnvProvider({ children }: { children: React.ReactNode }) {
   const [env, setEnv] = useState<ClientEnvType>();
   const client = useContext(HonoContext);
+
   useEffect(() => {
     if (!env) {
       (async () => {
@@ -35,6 +36,7 @@ function EnvProvider({ children }: { children: React.ReactNode }) {
       })();
     }
   }, []);
+
   if (!env) return <>Loading...</>;
   return <EnvContext.Provider value={env}>{children}</EnvContext.Provider>;
 }
@@ -45,6 +47,7 @@ export const AuthContext = createContext<{ headers: Record<string, string> }>(
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const env = useContext(EnvContext);
   const [token, setToken] = useState<string>();
+
   if (!env.DISABLE_AUTH && !token) return <Login setToken={setToken} />;
   return (
     <AuthContext.Provider
@@ -55,17 +58,38 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+export const MeContext = createContext<Person>(null!);
+function MeProvider({ children }: { children: React.ReactNode }) {
+  const client = useContext(HonoContext);
+  const { headers } = useContext(AuthContext);
+
+  const [me, setMe] = useState<Person>();
+
+  useEffect(() => {
+    if (!me) {
+      client.api.me.$get({}, { headers }).then(async (res) => {
+        setMe(await res.json());
+      });
+    }
+  }, []);
+
+  if (!me) return <>Loading...</>;
+  return <MeContext.Provider value={me}>{children}</MeContext.Provider>;
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Theme accentColor="gray" appearance="dark">
       <HonoContext.Provider value={defaultHonoContext}>
         <EnvProvider>
           <AuthProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<App />} />
-              </Routes>
-            </BrowserRouter>
+            <MeProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<App />} />
+                </Routes>
+              </BrowserRouter>
+            </MeProvider>
           </AuthProvider>
         </EnvProvider>
       </HonoContext.Provider>

@@ -8,33 +8,43 @@ import getDb from "./db";
 import { createMiddleware } from "hono/factory";
 
 const db = await getDb();
-
-const api = new Hono().get("/ping", (c) => c.text("pong"));
-
-if (!env.client.DISABLE_AUTH) {
-  api.use(jwt({ secret: env.server.JWT_SECRET }));
-  api.use(
-    createMiddleware<{ Variables: { personId: string } }>(async (c, next) => {
-      c.set("personId", c.get("jwtPayload").id);
-      await next();
-    }),
-  );
-} else {
-  const anon = await db
-    .selectFrom("person")
-    .select("id")
-    .where("email", "=", "anon")
-    .executeTakeFirst();
-  if (!anon) {
-    throw new Error("The 'anon' user does not exist!");
-  }
-  api.use(
-    createMiddleware<{ Variables: { personId: string } }>(async (c, next) => {
-      c.set("personId", anon.id);
-      await next();
-    }),
-  );
+const anon = await db
+  .selectFrom("person")
+  .select("id")
+  .where("email", "=", "anon")
+  .executeTakeFirst();
+if (!anon) {
+  throw new Error("The 'anon' user does not exist!");
 }
+
+const api = new Hono()
+  .use(
+    env.client.DISABLE_AUTH
+      ? async (_, next) => await next()
+      : jwt({ secret: env.server.JWT_SECRET }),
+  )
+  .use(
+    createMiddleware<{ Variables: { personId: string } }>(
+      env.client.DISABLE_AUTH
+        ? async (c, next) => {
+            c.set("personId", anon.id);
+            await next();
+          }
+        : async (c, next) => {
+            c.set("personId", c.get("jwtPayload").id);
+            await next();
+          },
+    ),
+  )
+  .get("/me", async (c) =>
+    c.json(
+      await db
+        .selectFrom("person")
+        .selectAll()
+        .where("id", "=", c.get("personId"))
+        .executeTakeFirst(),
+    ),
+  );
 
 const app = new Hono()
   .use(cors())
@@ -81,5 +91,6 @@ const app = new Hono()
 
 export type AppType = typeof app;
 export type ClientEnvType = typeof env.client;
+export * from "./types";
 
 export default app;

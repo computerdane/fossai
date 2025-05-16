@@ -9,8 +9,12 @@ import {
   Tooltip,
 } from "@radix-ui/themes";
 import { MagnifyingGlassIcon, Pencil2Icon } from "@radix-ui/react-icons";
+import { useContext } from "react";
+import { MeContext } from "./main";
 
 function App() {
+  const me = useContext(MeContext);
+
   return (
     <Flex className="h-dvh">
       <Flex direction="column" className="w-xs" p="1" gap="1">
@@ -42,7 +46,7 @@ function App() {
             </Select.Content>
           </Select.Root>
         </Box>
-        <Flex flexGrow="1">chatarea</Flex>
+        <Flex flexGrow="1">Welcome, {me.first_name}</Flex>
         <TextArea
           size="3"
           radius="large"
