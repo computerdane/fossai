@@ -1,6 +1,8 @@
 const env = {
   server: {
     JWT_SECRET: process.env.JWT_SECRET ?? "I <3 FOSS!",
+    POSTGRES_CONNECTION_STRING:
+      process.env.POSTGRES_CONNECTION_STRING ?? "postgres://localhost",
   },
   client: {
     SITE_TITLE: process.env.SITE_TITLE ?? "fossai - AI Assistant",
