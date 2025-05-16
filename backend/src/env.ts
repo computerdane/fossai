@@ -6,6 +6,7 @@ const env = {
     SITE_TITLE: process.env.SITE_TITLE ?? "fossai - AI Assistant",
     LOGIN_PAGE_TITLE: process.env.LOGIN_PAGE_TITLE ?? "fossai",
     LOGIN_PAGE_SUBTITLE: process.env.LOGIN_PAGE_SUBTITLE ?? "Free AI.",
+    DISABLE_AUTH: !!process.env.DISABLE_AUTH,
   },
 };
 

@@ -15,15 +15,6 @@ import { hc } from "hono/client";
 import type { AppType, ClientEnvType } from "@fossai/backend";
 import { Theme } from "@radix-ui/themes";
 
-export const TokenContext = createContext<string>(null!);
-function TokenProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string>();
-  if (!token) return <Login setToken={setToken} />;
-  return (
-    <TokenContext.Provider value={token}>{children}</TokenContext.Provider>
-  );
-}
-
 const url = "http://localhost:3000";
 const defaultHonoContext = hc<AppType>(url);
 export const HonoContext = createContext(defaultHonoContext);
@@ -48,18 +39,34 @@ function EnvProvider({ children }: { children: React.ReactNode }) {
   return <EnvContext.Provider value={env}>{children}</EnvContext.Provider>;
 }
 
+export const AuthContext = createContext<{ headers: Record<string, string> }>(
+  null!,
+);
+function AuthProvider({ children }: { children: React.ReactNode }) {
+  const env = useContext(EnvContext);
+  const [token, setToken] = useState<string>();
+  if (!env.DISABLE_AUTH && !token) return <Login setToken={setToken} />;
+  return (
+    <AuthContext.Provider
+      value={{ headers: { Authorization: `Bearer ${token}` } }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Theme accentColor="iris" appearance="dark">
       <HonoContext.Provider value={defaultHonoContext}>
         <EnvProvider>
-          <TokenProvider>
+          <AuthProvider>
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<App />} />
               </Routes>
             </BrowserRouter>
-          </TokenProvider>
+          </AuthProvider>
         </EnvProvider>
       </HonoContext.Provider>
     </Theme>

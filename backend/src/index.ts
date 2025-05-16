@@ -5,9 +5,11 @@ import { z } from "zod";
 import { cors } from "hono/cors";
 import env from "./env";
 
-const api = new Hono()
-  .use(jwt({ secret: env.server.JWT_SECRET }))
-  .get("/ping", (c) => c.text("pong"));
+const api = new Hono().get("/ping", (c) => c.text("pong"));
+
+if (!env.client.DISABLE_AUTH) {
+  api.use(jwt({ secret: env.server.JWT_SECRET }));
+}
 
 const app = new Hono()
   .use(cors())
