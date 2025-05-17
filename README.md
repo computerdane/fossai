@@ -1,6 +1,6 @@
 # fossai
 
-Free AI.
+Free AI. No [weird license changes](https://web.archive.org/web/20250517194947/https://docs.openwebui.com/license/#open-webui-license-explained) or [vendor lock-in](https://web.archive.org/web/20250517195343/https://www.librechat.ai/docs/features/code_interpreter#why-a-paid-api).
 
 ## Useful documentation
 
