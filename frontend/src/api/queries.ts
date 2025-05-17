@@ -1,4 +1,4 @@
-import { client } from "./honoClient";
+import { client } from "../lib/honoClient";
 
 export const getMe = async (headers: Record<string, string>) => {
   const res = await client.api.me.$get({}, { headers });

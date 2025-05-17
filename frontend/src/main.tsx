@@ -5,7 +5,7 @@ import { Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import "./index.css";
 import App from "./App.tsx";
-import { client } from "./api/honoClient";
+import { client } from "./lib/honoClient.ts";
 import { BrowserRouter, Route, Routes } from "react-router";
 import {EnvProvider, AuthProvider, OpenAiProvider, AppProvider} from './context'
 

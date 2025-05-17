@@ -9,7 +9,7 @@ import Sidebar from "./components/Sidebar";
 import { createNewChat, createNewMessage } from "./api/mutations";
 import { getChats, getMe, getMessages } from "./api/queries";
 import {EnvContext, AuthContext, OpenAiContext, AppContext} from './context'
-import { client } from "./api/honoClient";
+import { client } from "./lib/honoClient";
 
 function App() {
   const { chatId } = useParams();
@@ -140,20 +140,16 @@ function App() {
     }
   }
 
-  useEffect(() => {
-    scrollToBottom();
+useEffect(() => {
+  scrollToBottom();
+  const latestMessage = messages?.at(-1);
+  if (chatId && latestMessage?.role === "user") {
     generateAiMessage(messages);
-
-    const latestMessage = messages?.at(-1);
-    if (latestMessage?.role === "assistant" && latestMessage.content) {
-      setCompletion(undefined);
-      setCompletionMessageId(undefined);
-    }
-  }, [messages]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [completion]);
+  } else if (latestMessage?.role === "assistant" && latestMessage.content) {
+    setCompletion(undefined);
+    setCompletionMessageId(undefined);
+  }
+}, [messages, chatId]);
 
   return (
     <Flex className="h-dvh">

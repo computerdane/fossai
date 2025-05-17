@@ -1,4 +1,4 @@
-import { client } from "./honoClient";
+import { client } from "../lib/honoClient";
 
 export const createNewMessage = async (
   headers: Record<string, string>,

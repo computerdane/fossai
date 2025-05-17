@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { client } from "../api/honoClient";
+import { client } from "../lib/honoClient";
 import { useContext } from "react";
 import { AuthContext, OpenAiContext } from ".";
 
