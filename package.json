@@ -1,14 +1,21 @@
 {
   "name": "fossai",
   "private": true,
-  "workspaces": ["frontend", "backend"],
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "husky": "^9.1.7"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
     "hono": "^4.7.9"
+  },
+  "scripts": {
+    "prepare": "husky"
   }
 }
