@@ -1,23 +1,5 @@
 import "./App.css";
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  IconButton,
-  Link,
-  ScrollArea,
-  Select,
-  Separator,
-  TextField,
-  Tooltip,
-} from "@radix-ui/themes";
-import {
-  MagnifyingGlassIcon,
-  Pencil1Icon,
-  Pencil2Icon,
-  TrashIcon,
-} from "@radix-ui/react-icons";
+import { Box, Flex, Heading, ScrollArea, Select } from "@radix-ui/themes";
 import { useContext, useEffect, useRef, useState } from "react";
 import {
   AuthContext,
@@ -28,8 +10,9 @@ import {
 } from "./main";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import MessageInput from "./components/MessageInput";
-import { Link as RouterLink, useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import MessageBubble from "./components/MessageBubble";
+import Sidebar from "./components/Sidebar";
 
 function App() {
   const { chatId } = useParams();
@@ -216,64 +199,8 @@ function App() {
 
   return (
     <Flex className="h-dvh">
-      <Flex
-        direction="column"
-        className="w-xs min-w-xs max-w-xs bg-(--accent-1)"
-        p="1"
-        gap="1"
-      >
-        <Flex gap="1">
-          <TextField.Root
-            placeholder="Search chats..."
-            variant="soft"
-            radius="full"
-            className="grow"
-          >
-            <TextField.Slot>
-              <MagnifyingGlassIcon />
-            </TextField.Slot>
-          </TextField.Root>
-          <Tooltip content="New chat">
-            <IconButton variant="soft" asChild>
-              <RouterLink to="/">
-                <Pencil2Icon />
-              </RouterLink>
-            </IconButton>
-          </Tooltip>
-        </Flex>
-        <Separator mx="auto" />
-        <ScrollArea className="grow px-1" scrollbars="vertical">
-          <Flex direction="column" gap="1">
-            {chats?.map((chat) => (
-              <Flex key={`chat-${chat.id}`} gap="1">
-                <Button
-                  variant={chat.id === chatId ? "solid" : "soft"}
-                  asChild
-                  className="grow! shrink! truncate! inline-block! text-left! pt-1.5!"
-                >
-                  <Link asChild>
-                    <RouterLink to={`/c/${chat.id}`}>{chat.title}</RouterLink>
-                  </Link>
-                </Button>
-                {chat.id === chatId && (
-                  <>
-                    <Tooltip content="Edit title">
-                      <IconButton size="1" variant="soft">
-                        <Pencil1Icon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip content="Delete chat">
-                      <IconButton size="1" variant="soft">
-                        <TrashIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </>
-                )}
-              </Flex>
-            ))}
-          </Flex>
-        </ScrollArea>
-      </Flex>
+      <Sidebar chats={chats} chatId={chatId} />
+
       <Flex direction="column" flexGrow="1" p="1" className="bg-(--accent-2)">
         <Flex justify="center">
           <Box className="chat-area mb-1">
@@ -289,6 +216,7 @@ function App() {
             </Select.Root>
           </Box>
         </Flex>
+
         {chatId ? (
           <>
             <ScrollArea ref={scrollAreaRef} className="grow" size="2">
@@ -307,6 +235,7 @@ function App() {
                 </Flex>
               </Flex>
             </ScrollArea>
+
             <Flex justify="center">
               <Flex direction="column" className="chat-area">
                 <MessageInput
