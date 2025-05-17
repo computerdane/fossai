@@ -42,7 +42,7 @@ const openai = new OpenAI({
   apiKey: "",
   dangerouslyAllowBrowser: true,
 });
-export const OpenaiContext = createContext(openai);
+export const OpenAiContext = createContext(openai);
 
 let models = [];
 for await (const model of openai.models.list()) {
@@ -70,9 +70,9 @@ createRoot(document.getElementById("root")!).render(
                     path="/"
                     element={
                       <AppContext.Provider value={appContext}>
-                        <OpenaiContext.Provider value={openai}>
+                        <OpenAiContext.Provider value={openai}>
                           <App />
-                        </OpenaiContext.Provider>
+                        </OpenAiContext.Provider>
                       </AppContext.Provider>
                     }
                   />
@@ -80,9 +80,9 @@ createRoot(document.getElementById("root")!).render(
                     path="/c/:chatId"
                     element={
                       <AppContext.Provider value={appContext}>
-                        <OpenaiContext.Provider value={openai}>
+                        <OpenAiContext.Provider value={openai}>
                           <App />
-                        </OpenaiContext.Provider>
+                        </OpenAiContext.Provider>
                       </AppContext.Provider>
                     }
                   />

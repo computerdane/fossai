@@ -5,11 +5,13 @@ import type { Updateable } from "kysely";
 
 function MessageBubble({
   message,
-  float,
+  completion,
 }: {
   message: Updateable<Message>;
-  float: "left" | "right";
+  completion?: string;
 }) {
+  const float = message.role === "user" ? "right" : "left";
+
   return (
     <Box className={clsx(`m${float === "right" ? "l" : "r"}-4`)}>
       <Card
@@ -20,7 +22,7 @@ function MessageBubble({
             {message.model}
           </Heading>
         )}
-        <Text as="p">{message.content}</Text>
+        <Text as="p">{completion ?? message.content}</Text>
       </Card>
     </Box>
   );

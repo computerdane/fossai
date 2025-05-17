@@ -84,7 +84,7 @@ const api = new Hono()
     c.json(
       await db
         .selectFrom("message")
-        .selectAll()
+        .selectAll("message")
         .where("chat_id", "=", c.req.param("id"))
         .innerJoin("chat", "chat.id", "message.chat_id")
         .innerJoin("person", "chat.person_id", "person.id")
@@ -114,6 +114,27 @@ const api = new Hono()
         await db
           .insertInto("message")
           .values({ ...c.req.valid("json"), chat_id: id })
+          .returningAll()
+          .executeTakeFirstOrThrow(),
+      );
+    },
+  )
+  .put(
+    "/message/:id",
+    zValidator("json", z.object({ content: z.string() })),
+    async (c) => {
+      const { id } = await db
+        .selectFrom("message")
+        .select("message.id")
+        .innerJoin("chat", "chat.id", "message.chat_id")
+        .innerJoin("person", "person.id", "chat.person_id")
+        .where("person.id", "=", c.get("personId"))
+        .executeTakeFirstOrThrow();
+      return c.json(
+        await db
+          .updateTable("message")
+          .set("content", c.req.valid("json").content)
+          .where("id", "=", id)
           .returningAll()
           .executeTakeFirstOrThrow(),
       );

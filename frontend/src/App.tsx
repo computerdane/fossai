@@ -12,8 +12,8 @@ import {
   Tooltip,
 } from "@radix-ui/themes";
 import { MagnifyingGlassIcon, Pencil2Icon } from "@radix-ui/react-icons";
-import { useContext, useState } from "react";
-import { AuthContext, HonoContext, AppContext } from "./main";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { AuthContext, HonoContext, AppContext, OpenAiContext } from "./main";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import MessageInput from "./components/MessageInput";
 import { Link as RouterLink, useNavigate, useParams } from "react-router";
@@ -27,8 +27,11 @@ function App() {
   const { models } = useContext(AppContext);
   const client = useContext(HonoContext);
   const { headers } = useContext(AuthContext);
+  const openai = useContext(OpenAiContext);
 
   const [model, setModel] = useState(models[0]);
+  const [completionModel, setCompletionModel] = useState(model);
+  const [completion, setCompletion] = useState<string>();
 
   const { data: me } = useQuery({
     queryKey: ["me"],
@@ -63,6 +66,29 @@ function App() {
     staleTime: Infinity,
   });
 
+  const scrollAreaRef = useRef<HTMLDivElement>(null!);
+  function scrollToBottom() {
+    scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+  }
+
+  const newMessageMutation = useMutation({
+    mutationFn: async ({
+      chatId,
+      content,
+    }: {
+      chatId: string;
+      content: string;
+    }) => {
+      await client.api.chat[":id"].message.$post({
+        param: { id: chatId },
+        json: { content, role: "user" },
+      });
+    },
+    onSuccess() {
+      queryClient.invalidateQueries({ queryKey: ["messages"] });
+    },
+  });
+
   const newChatMutation = useMutation({
     mutationFn: async (content: string) => {
       const res = await client.api.chat.$post(
@@ -70,17 +96,48 @@ function App() {
         { headers },
       );
       const { id } = await res.json();
-      await client.api.chat[":id"].message.$post({
-        param: { id },
-        json: { content, role: "user" },
-      });
+      await newMessageMutation.mutateAsync({ chatId: id, content });
       return id;
     },
-    onSuccess(id) {
-      queryClient.invalidateQueries({ queryKey: ["chats"] });
-      navigate(`/c/${id}`);
+    async onSuccess(id) {
+      await queryClient.invalidateQueries({ queryKey: ["chats"] });
+      await navigate(`/c/${id}`);
     },
   });
+
+  const generateAiMessage = useCallback(async () => {
+    if (chatId && messages?.at(-1)?.role === "user") {
+      const currentModel = model;
+      setCompletionModel(currentModel);
+      let content = "";
+      for await (const chunk of await openai.chat.completions.create({
+        model,
+        messages: messages.map(({ role, content }) => ({ role, content })),
+        stream: true,
+      })) {
+        const delta = chunk.choices.at(0)?.delta.content;
+        if (delta) {
+          content += delta;
+          setCompletion(content);
+        }
+      }
+      await client.api.chat[":id"].message.$post({
+        param: { id: chatId },
+        json: { content, role: "assistant", model: currentModel },
+      });
+      setCompletion(undefined);
+      queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
+    }
+  }, [messages, chatId]);
+
+  useEffect(() => {
+    scrollToBottom();
+    generateAiMessage();
+  }, [messages]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [completion]);
 
   return (
     <Flex className="h-dvh">
@@ -145,22 +202,36 @@ function App() {
         </Flex>
         {chatId ? (
           <>
-            <ScrollArea className="grow" size="2">
+            <ScrollArea ref={scrollAreaRef} className="grow" size="2">
               <Flex justify="center">
                 <Flex direction="column" gap="4" p="4" className="chat-area">
                   {messages?.map((message) => (
                     <MessageBubble
-                      key={`message=${message.id}`}
+                      key={`message-${message.chat_id}-${message.id}`}
                       message={message}
-                      float={message.role === "user" ? "right" : "left"}
                     />
                   ))}
+                  {completion && (
+                    <MessageBubble
+                      key="completion"
+                      message={{
+                        role: "assistant",
+                        model: completionModel,
+                        content: completion,
+                      }}
+                    />
+                  )}
                 </Flex>
               </Flex>
             </ScrollArea>
             <Flex justify="center">
               <Flex direction="column" className="chat-area">
-                <MessageInput model={model} onSubmit={() => {}} />
+                <MessageInput
+                  model={model}
+                  onSubmit={(content) => {
+                    newMessageMutation.mutate({ chatId, content });
+                  }}
+                />
               </Flex>
             </Flex>
           </>
