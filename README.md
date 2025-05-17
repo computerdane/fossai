@@ -36,7 +36,6 @@ Start live backend dev server:
 
 Start live frontend dev server:
 
-
 ```sh
   cd frontend
   bun dev

@@ -21,5 +21,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   if (!models) return <>Loading...</>;
 
-  return <AppContext.Provider value={{ models }}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={{ models }}>{children}</AppContext.Provider>
+  );
 }
