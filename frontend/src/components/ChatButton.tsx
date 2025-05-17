@@ -2,6 +2,9 @@ import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { Button, Flex, IconButton, Link, Tooltip } from "@radix-ui/themes";
 import { Link as RouterLink } from "react-router";
 import EditChatDialog from "./EditChatDialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useContext } from "react";
+import { AuthContext, HonoContext } from "../main";
 
 function ChatButton({
   chat,
@@ -10,6 +13,22 @@ function ChatButton({
   chat: { id: string; title: string };
   selected: boolean;
 }) {
+  const client = useContext(HonoContext);
+  const { headers } = useContext(AuthContext);
+
+  const queryClient = useQueryClient();
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await client.api.chat[":id"].$delete(
+        { param: { id: chat.id } },
+        { headers },
+      );
+    },
+    onSuccess() {
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
+    },
+  });
+
   return (
     <Flex key={`chat-${chat.id}`} gap="1">
       <Button
@@ -36,7 +55,11 @@ function ChatButton({
           />
 
           <Tooltip content="Delete chat">
-            <IconButton size="1" variant="soft">
+            <IconButton
+              size="1"
+              variant="soft"
+              onClick={() => deleteMutation.mutate()}
+            >
               <TrashIcon />
             </IconButton>
           </Tooltip>

@@ -87,10 +87,9 @@ const api = new Hono()
       const { title } = c.req.valid("json");
       const { id } = await db
         .selectFrom("chat")
-        .select("chat.id")
-        .where("chat.id", "=", c.req.param("id"))
-        .innerJoin("person", "person.id", "chat.person_id")
-        .where("person.id", "=", c.get("personId"))
+        .select("id")
+        .where("id", "=", c.req.param("id"))
+        .where("person_id", "=", c.get("personId"))
         .executeTakeFirstOrThrow();
       return c.json(
         await db
@@ -102,15 +101,27 @@ const api = new Hono()
       );
     },
   )
+  .delete("/chat/:id", async (c) => {
+    const { id } = await db
+      .selectFrom("chat")
+      .select("id")
+      .where("id", "=", c.req.param("id"))
+      .where("person_id", "=", c.get("personId"))
+      .executeTakeFirstOrThrow();
+    if (id) {
+      await db.deleteFrom("message").where("chat_id", "=", id).execute();
+      await db.deleteFrom("chat").where("id", "=", id).execute();
+      return c.body(null, 204);
+    }
+  })
   .get("/chat/:id/messages", async (c) =>
     c.json(
       await db
         .selectFrom("message")
         .selectAll("message")
-        .where("chat_id", "=", c.req.param("id"))
+        .where("message.chat_id", "=", c.req.param("id"))
         .innerJoin("chat", "chat.id", "message.chat_id")
-        .innerJoin("person", "chat.person_id", "person.id")
-        .where("person.id", "=", c.get("personId"))
+        .where("person_id", "=", c.get("personId"))
         .orderBy("message.created_at", "asc")
         .execute(),
     ),
@@ -150,8 +161,7 @@ const api = new Hono()
         .select("message.id")
         .where("message.id", "=", c.req.param("id"))
         .innerJoin("chat", "chat.id", "message.chat_id")
-        .innerJoin("person", "person.id", "chat.person_id")
-        .where("person.id", "=", c.get("personId"))
+        .where("chat.person_id", "=", c.get("personId"))
         .executeTakeFirstOrThrow();
       return c.json(
         await db
