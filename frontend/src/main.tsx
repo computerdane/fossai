@@ -29,7 +29,7 @@ export const AuthContext = createContext<{
   token: string;
   headers: Record<string, string>;
 }>(null!);
-function AuthProvider({ children }: { children: React.ReactNode }) {
+function AuthContextProvider({ children }: { children: React.ReactNode }) {
   const env = useContext(EnvContext);
   const [token, setToken] = useState<string>(null!);
 
@@ -87,7 +87,7 @@ createRoot(document.getElementById("root")!).render(
     <Theme accentColor="gray" appearance="dark">
       <HonoContext.Provider value={client}>
         <EnvContext.Provider value={env}>
-          <AuthProvider>
+          <AuthContextProvider>
             <QueryClientProvider client={queryClient}>
               <BrowserRouter>
                 <Routes>
@@ -114,7 +114,7 @@ createRoot(document.getElementById("root")!).render(
                 </Routes>
               </BrowserRouter>
             </QueryClientProvider>
-          </AuthProvider>
+          </AuthContextProvider>
         </EnvContext.Provider>
       </HonoContext.Provider>
     </Theme>
