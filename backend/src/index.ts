@@ -7,6 +7,7 @@ import env from "./env";
 import getDb from "./db";
 import { createMiddleware } from "hono/factory";
 import { proxy } from "hono/proxy";
+import error from "./error";
 
 const db = await getDb();
 
@@ -43,15 +44,19 @@ const api = new Hono()
           },
     ),
   )
-  .get("/me", async (c) =>
-    c.json(
-      await db
-        .selectFrom("person")
-        .selectAll()
-        .where("id", "=", c.get("personId"))
-        .executeTakeFirstOrThrow(),
-    ),
-  )
+  .get("/me", async (c) => {
+    const person = await db
+      .selectFrom("person")
+      .selectAll()
+      .where("id", "=", c.get("personId"))
+      .executeTakeFirst();
+
+    if (person) {
+      return c.json(person);
+    }
+
+    return error(c, 500);
+  })
   .all("/openai/:path{.+}", async (c) => {
     return proxy(`https://api.openai.com/v1/${c.req.param("path")}`, {
       ...c.req,
@@ -71,49 +76,65 @@ const api = new Hono()
   .post(
     "/chat",
     zValidator("json", z.object({ title: z.string() })),
-    async (c) =>
-      c.json(
-        await db
-          .insertInto("chat")
-          .values({ ...c.req.valid("json"), person_id: c.get("personId") })
-          .returning("id")
-          .executeTakeFirstOrThrow(),
-        201,
-      ),
+    async (c) => {
+      const chat = await db
+        .insertInto("chat")
+        .values({ ...c.req.valid("json"), person_id: c.get("personId") })
+        .returning("id")
+        .executeTakeFirst();
+
+      if (chat) {
+        return c.json(chat, 201);
+      }
+
+      return error(c, 500);
+    },
   )
   .put(
     "/chat/:id",
     zValidator("json", z.object({ title: z.string() })),
     async (c) => {
       const { title } = c.req.valid("json");
-      const { id } = await db
+      const chat = await db
         .selectFrom("chat")
         .select("id")
         .where("id", "=", c.req.param("id"))
         .where("person_id", "=", c.get("personId"))
-        .executeTakeFirstOrThrow();
-      return c.json(
-        await db
+        .executeTakeFirst();
+
+      if (chat) {
+        const updated = await db
           .updateTable("chat")
           .set("title", title)
-          .where("id", "=", id)
+          .where("id", "=", chat.id)
           .returningAll()
-          .executeTakeFirstOrThrow(),
-      );
+          .executeTakeFirst();
+
+        if (updated) {
+          return c.json(updated, 200);
+        }
+
+        return error(c, 500);
+      }
+
+      return error(c, 404);
     },
   )
   .delete("/chat/:id", async (c) => {
-    const { id } = await db
+    const chat = await db
       .selectFrom("chat")
       .select("id")
       .where("id", "=", c.req.param("id"))
       .where("person_id", "=", c.get("personId"))
-      .executeTakeFirstOrThrow();
-    if (id) {
-      await db.deleteFrom("message").where("chat_id", "=", id).execute();
-      await db.deleteFrom("chat").where("id", "=", id).execute();
+      .executeTakeFirst();
+
+    if (chat) {
+      await db.deleteFrom("message").where("chat_id", "=", chat.id).execute();
+      await db.deleteFrom("chat").where("id", "=", chat.id).execute();
       return c.body(null, 204);
     }
+
+    return error(c, 404);
   })
   .get("/chat/:id/messages", async (c) =>
     c.json(
@@ -138,41 +159,58 @@ const api = new Hono()
       }),
     ),
     async (c) => {
-      const { id } = await db
+      const chat = await db
         .selectFrom("chat")
         .select("id")
         .where("person_id", "=", c.get("personId"))
         .where("id", "=", c.req.param("id"))
-        .executeTakeFirstOrThrow();
-      return c.json(
-        await db
+        .executeTakeFirst();
+
+      if (chat) {
+        const message = await db
           .insertInto("message")
-          .values({ ...c.req.valid("json"), chat_id: id })
+          .values({ ...c.req.valid("json"), chat_id: chat.id })
           .returningAll()
-          .executeTakeFirstOrThrow(),
-        201,
-      );
+          .executeTakeFirst();
+
+        if (message) {
+          return c.json(message, 201);
+        }
+
+        return error(c, 500);
+      }
+
+      return error(c, 404);
     },
   )
   .put(
     "/message/:id",
     zValidator("json", z.object({ content: z.string() })),
     async (c) => {
-      const { id } = await db
+      const message = await db
         .selectFrom("message")
         .select("message.id")
         .where("message.id", "=", c.req.param("id"))
         .innerJoin("chat", "chat.id", "message.chat_id")
         .where("chat.person_id", "=", c.get("personId"))
-        .executeTakeFirstOrThrow();
-      return c.json(
-        await db
+        .executeTakeFirst();
+
+      if (message) {
+        const updated = await db
           .updateTable("message")
           .set("content", c.req.valid("json").content)
-          .where("id", "=", id)
+          .where("id", "=", message.id)
           .returningAll()
-          .executeTakeFirstOrThrow(),
-      );
+          .executeTakeFirst();
+
+        if (updated) {
+          return c.json(updated, 200);
+        }
+
+        return error(c, 500);
+      }
+
+      return error(c, 404);
     },
   );
 
@@ -198,10 +236,10 @@ const app = new Hono()
           exp: Math.floor(Date.now() / 1000) + 60 * 5, // Token expires in 5 minutes
         };
         const token = await sign(payload, env.server.JWT_SECRET);
-        return c.json({ token });
+        return c.json({ token }, 201);
       }
 
-      return c.json({ error: "unauthorized" }, 401);
+      error(c, 401);
     },
   )
   .post(
@@ -215,9 +253,11 @@ const app = new Hono()
         .returningAll()
         .executeTakeFirst();
 
-      if (person) return c.json(person, 201);
+      if (person) {
+        return c.json(person, 201);
+      }
 
-      return c.json({ error: "unauthorized" }, 401);
+      return error(c, 401);
     },
   )
   .get("/", (c) => c.json({ ok: true }));
