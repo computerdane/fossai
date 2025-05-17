@@ -113,7 +113,6 @@ function App() {
 
   async function generateTitle(content: string) {
     if (chatId) {
-      console.log("caled");
       const completions = await openai.chat.completions.create({
         model,
         messages: [
