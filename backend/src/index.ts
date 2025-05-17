@@ -224,6 +224,5 @@ const app = new Hono()
 
 export type AppType = typeof app;
 export type ClientEnvType = typeof env.client;
-export * from "./types";
 
 export default app;

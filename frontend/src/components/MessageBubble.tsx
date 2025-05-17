@@ -1,9 +1,15 @@
-import type { Message } from "@fossai/backend";
 import { Box, Card, Heading, Text } from "@radix-ui/themes";
 import clsx from "clsx";
-import type { Updateable } from "kysely";
 
-function MessageBubble({ message }: { message: Updateable<Message> }) {
+function MessageBubble({
+  message,
+}: {
+  message: {
+    role: "user" | "assistant";
+    model: string | null;
+    content: string;
+  };
+}) {
   const float = message.role === "user" ? "right" : "left";
 
   return (
