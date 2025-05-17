@@ -9,7 +9,11 @@ function MessageBubble({ message }: { message: Updateable<Message> }) {
   return (
     <Box className={clsx(`m${float === "right" ? "l" : "r"}-4`)}>
       <Card
-        className={clsx("max-w-3xl w-fit!", float === "right" && "ml-auto")}
+        className={clsx(
+          "max-w-3xl w-fit!",
+          float === "right" && "ml-auto",
+          float === "right" && "bg-(--accent-8)",
+        )}
       >
         {message.role === "assistant" && (
           <Heading size="2" mb="1">

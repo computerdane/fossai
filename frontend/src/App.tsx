@@ -8,6 +8,7 @@ import {
   Link,
   ScrollArea,
   Select,
+  Separator,
   TextField,
   Tooltip,
 } from "@radix-ui/themes";
@@ -215,7 +216,12 @@ function App() {
 
   return (
     <Flex className="h-dvh">
-      <Flex direction="column" className="w-xs min-w-xs max-w-xs" p="1" gap="1">
+      <Flex
+        direction="column"
+        className="w-xs min-w-xs max-w-xs bg-(--accent-1)"
+        p="1"
+        gap="1"
+      >
         <Flex gap="1">
           <TextField.Root
             placeholder="Search chats..."
@@ -235,11 +241,9 @@ function App() {
             </IconButton>
           </Tooltip>
         </Flex>
+        <Separator mx="auto" />
         <ScrollArea className="grow px-1" scrollbars="vertical">
           <Flex direction="column" gap="1">
-            <Heading size="1" weight="regular" color="gray">
-              Previous Chats
-            </Heading>
             {chats?.map((chat) => (
               <Flex key={`chat-${chat.id}`} gap="1">
                 <Button
@@ -270,7 +274,7 @@ function App() {
           </Flex>
         </ScrollArea>
       </Flex>
-      <Flex direction="column" flexGrow="1" p="1">
+      <Flex direction="column" flexGrow="1" p="1" className="bg-(--accent-2)">
         <Flex justify="center">
           <Box className="chat-area mb-1">
             <Select.Root value={model} onValueChange={setModel}>
@@ -317,7 +321,7 @@ function App() {
         ) : (
           <Flex flexGrow="1" justify="center">
             <Flex direction="column" className="my-auto chat-area">
-              <Heading size="5" m="2" weight="regular">
+              <Heading size="5" m="2">
                 Hi {me && me.email != "anon" ? me.first_name : "there"}! How can
                 I help you?
               </Heading>
