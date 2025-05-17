@@ -6,6 +6,7 @@ import { cors } from "hono/cors";
 import env from "./env";
 import getDb from "./db";
 import { createMiddleware } from "hono/factory";
+import { proxy } from "hono/proxy";
 
 const db = await getDb();
 
@@ -17,6 +18,11 @@ const anon = await db
 if (!anon) {
   throw new Error("The 'anon' user does not exist!");
 }
+
+const openaiHeaders = {
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${env.server.OPENAI_API_KEY}`,
+};
 
 const api = new Hono()
   .use(
@@ -37,6 +43,12 @@ const api = new Hono()
           },
     ),
   )
+  .all("/openai/:path{.+}", async (c) => {
+    return proxy(`https://api.openai.com/v1/${c.req.param("path")}`, {
+      ...c.req,
+      headers: openaiHeaders,
+    });
+  })
   .get("/me", async (c) =>
     c.json(
       await db
