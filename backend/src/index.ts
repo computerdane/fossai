@@ -49,6 +49,9 @@ const api = new Hono()
       headers: openaiHeaders,
     });
   })
+  .get("/chats", async (c) =>
+    c.json(await db.selectFrom("chat").selectAll().execute()),
+  )
   .get("/me", async (c) =>
     c.json(
       await db

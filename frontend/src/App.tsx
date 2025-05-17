@@ -5,53 +5,30 @@ import {
   IconButton,
   ScrollArea,
   Select,
-  TextArea,
   TextField,
   Tooltip,
 } from "@radix-ui/themes";
 import { MagnifyingGlassIcon, Pencil2Icon } from "@radix-ui/react-icons";
-import { useContext, useEffect, useState } from "react";
-import { EnvContext, HonoContext, MeContext } from "./main";
-import { OpenAI } from "openai";
+import { useContext, useState } from "react";
+import { AuthContext, HonoContext, AppContext } from "./main";
 import MessageBubble from "./components/Message";
 import { useQuery } from "@tanstack/react-query";
+import MessageInput from "./components/MessageInput";
 
 function App() {
-  const me = useContext(MeContext);
+  const { models } = useContext(AppContext);
   const client = useContext(HonoContext);
-  const env = useContext(EnvContext);
+  const { headers } = useContext(AuthContext);
 
-  const openai = new OpenAI({
-    baseURL: client.api.openai[":path{.+}"]
-      .$url({ param: { path: "" } })
-      .toString(),
-    apiKey: "",
-    dangerouslyAllowBrowser: true,
-  });
+  const [model, setModel] = useState(models[0]);
 
-  const { error, data: models } = useQuery({
-    queryKey: ["models"],
+  const { error: chatsError, data: chats } = useQuery({
+    queryKey: ["chats"],
     queryFn: async () => {
-      let models = [];
-      for await (const model of openai.models.list()) {
-        if (new RegExp(env.CHAT_MODELS_FILTER_REGEX).test(model.id)) {
-          models.push(model.id);
-        }
-      }
-      models.sort();
-      return models;
+      const res = await client.api.chats.$get({}, { headers });
+      return await res.json();
     },
   });
-
-  const [model, setModel] = useState("");
-  useEffect(() => {
-    if (models) {
-      setModel(models[0]);
-    }
-  }, [models]);
-
-  if (error) return `Failed to load models: {error}`;
-  if (!models) return "Loading...";
 
   return (
     <Flex className="h-dvh">
@@ -79,7 +56,7 @@ function App() {
           <Select.Root value={model} onValueChange={setModel}>
             <Select.Trigger variant="soft" />
             <Select.Content position="popper">
-              {models.map((model) => (
+              {models?.map((model) => (
                 <Select.Item key={model} value={model}>
                   {model}
                 </Select.Item>
@@ -191,12 +168,7 @@ function App() {
             ></MessageBubble>
           </Flex>
         </ScrollArea>
-        <TextArea
-          size="3"
-          radius="large"
-          placeholder={`Write a message to ${model}`}
-          className="chat-area"
-        />
+        <MessageInput model={model} />
       </Flex>
     </Flex>
   );

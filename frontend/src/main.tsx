@@ -1,10 +1,4 @@
-import {
-  createContext,
-  StrictMode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, StrictMode, useContext, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "@radix-ui/themes/styles.css";
 import "./index.css";
@@ -12,35 +6,17 @@ import App from "./App.tsx";
 import { BrowserRouter, Route, Routes } from "react-router";
 import Login from "./Login.tsx";
 import { hc } from "hono/client";
-import type { AppType, ClientEnvType, Person } from "@fossai/backend";
+import type { AppType, ClientEnvType } from "@fossai/backend";
 import { Theme } from "@radix-ui/themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import OpenAI from "openai";
 
 const url = "http://localhost:3000";
-const defaultHonoContext = hc<AppType>(url);
-export const HonoContext = createContext(defaultHonoContext);
+const client = hc<AppType>(url);
+export const HonoContext = createContext(client);
 
-export const EnvContext = createContext<ClientEnvType>(null!);
-function EnvProvider({ children }: { children: React.ReactNode }) {
-  const [env, setEnv] = useState<ClientEnvType>();
-  const client = useContext(HonoContext);
-
-  useEffect(() => {
-    if (!env) {
-      (async () => {
-        const res = await client.env.$get();
-        if (res.ok) {
-          const data = await res.json();
-          document.title = data.SITE_TITLE;
-          setEnv(data);
-        }
-      })();
-    }
-  }, []);
-
-  if (!env) return <>Loading...</>;
-  return <EnvContext.Provider value={env}>{children}</EnvContext.Provider>;
-}
+const env = await (await client.env.$get()).json();
+export const EnvContext = createContext<ClientEnvType>(env);
 
 export const AuthContext = createContext<{ headers: Record<string, string> }>(
   null!,
@@ -59,44 +35,53 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export const MeContext = createContext<Person>(null!);
-function MeProvider({ children }: { children: React.ReactNode }) {
-  const client = useContext(HonoContext);
-  const { headers } = useContext(AuthContext);
+const openai = new OpenAI({
+  baseURL: client.api.openai[":path{.+}"]
+    .$url({ param: { path: "" } })
+    .toString(),
+  apiKey: "",
+  dangerouslyAllowBrowser: true,
+});
+export const OpenaiContext = createContext(openai);
 
-  const [me, setMe] = useState<Person>();
-
-  useEffect(() => {
-    if (!me) {
-      client.api.me.$get({}, { headers }).then(async (res) => {
-        setMe(await res.json());
-      });
-    }
-  }, []);
-
-  if (!me) return <>Loading...</>;
-  return <MeContext.Provider value={me}>{children}</MeContext.Provider>;
+const me = await (await client.api.me.$get()).json();
+let models = [];
+for await (const model of openai.models.list()) {
+  if (new RegExp(env.CHAT_MODELS_FILTER_REGEX).test(model.id)) {
+    models.push(model.id);
+  }
 }
+models.sort();
+const appContext = { me, models };
+
+export const AppContext = createContext(appContext);
 
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Theme accentColor="gray" appearance="dark">
-      <HonoContext.Provider value={defaultHonoContext}>
-        <EnvProvider>
+      <HonoContext.Provider value={client}>
+        <EnvContext.Provider value={env}>
           <AuthProvider>
-            <MeProvider>
-              <QueryClientProvider client={queryClient}>
-                <BrowserRouter>
-                  <Routes>
-                    <Route path="/" element={<App />} />
-                  </Routes>
-                </BrowserRouter>
-              </QueryClientProvider>
-            </MeProvider>
+            <QueryClientProvider client={queryClient}>
+              <BrowserRouter>
+                <Routes>
+                  <Route
+                    path="/"
+                    element={
+                      <AppContext.Provider value={appContext}>
+                        <OpenaiContext.Provider value={openai}>
+                          <App />
+                        </OpenaiContext.Provider>
+                      </AppContext.Provider>
+                    }
+                  />
+                </Routes>
+              </BrowserRouter>
+            </QueryClientProvider>
           </AuthProvider>
-        </EnvProvider>
+        </EnvContext.Provider>
       </HonoContext.Provider>
     </Theme>
   </StrictMode>,
