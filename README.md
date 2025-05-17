@@ -2,6 +2,16 @@
 
 Free AI.
 
+## Useful documentation
+
+- Hono [RPC](https://hono.dev/docs/guides/rpc), [Validation](https://hono.dev/docs/guides/validation), and [JWT Middleware](https://hono.dev/docs/middleware/builtin/jwt)
+- Kysely [query example](https://kysely.dev/docs/getting-started#summary)
+- Bun [workspaces](https://bun.sh/docs/install/workspaces)
+- OpenAI's [API reference](https://platform.openai.com/docs/api-reference/introduction)
+- React Router [declarative routing](https://reactrouter.com/start/declarative/routing)
+- Radix UI [themes](https://www.radix-ui.com/themes/docs/overview/getting-started), [primitives](https://www.radix-ui.com/primitives/docs/overview/introduction), and [icons](https://www.radix-ui.com/icons)
+- TanStack Query [docs](https://tanstack.com/query/latest/docs/framework/react/overview)
+
 ## Development
 
 Install dependencies:
