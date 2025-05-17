@@ -8,7 +8,7 @@ import MessageBubble from "./components/MessageBubble";
 import Sidebar from "./components/Sidebar";
 import { createNewChat, createNewMessage } from "./api/mutations";
 import { getChats, getMe, getMessages } from "./api/queries";
-import {EnvContext, AuthContext, OpenAiContext, AppContext} from './context'
+import { EnvContext, AuthContext, OpenAiContext, AppContext } from "./context";
 import { client } from "./lib/honoClient";
 
 function App() {
@@ -36,15 +36,19 @@ function App() {
   });
 
   useEffect(() => {
-  if (isSuccess && chatId && chats && !chats.find((chat) => chat.id === chatId)) {
-    navigate("/");
-  }
+    if (
+      isSuccess &&
+      chatId &&
+      chats &&
+      !chats.find((chat) => chat.id === chatId)
+    ) {
+      navigate("/");
+    }
   }, [isSuccess, chatId, chats, navigate]);
-
 
   const { data: messages } = useQuery({
     queryKey: ["messages", chatId],
-    queryFn: () => (getMessages(headers, chatId!)),
+    queryFn: () => getMessages(headers, chatId!),
     enabled: !!chatId,
     staleTime: Infinity,
   });
@@ -104,6 +108,9 @@ function App() {
         },
         { headers },
       );
+      if (!res.ok) {
+        throw new Error("Failed to create chat");
+      }
       const { id } = await res.json();
       await queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
       setCompletionMessageId(id);
@@ -140,16 +147,16 @@ function App() {
     }
   }
 
-useEffect(() => {
-  scrollToBottom();
-  const latestMessage = messages?.at(-1);
-  if (chatId && latestMessage?.role === "user") {
-    generateAiMessage(messages);
-  } else if (latestMessage?.role === "assistant" && latestMessage.content) {
-    setCompletion(undefined);
-    setCompletionMessageId(undefined);
-  }
-}, [messages, chatId]);
+  useEffect(() => {
+    scrollToBottom();
+    const latestMessage = messages?.at(-1);
+    if (chatId && latestMessage?.role === "user") {
+      generateAiMessage(messages);
+    } else if (latestMessage?.role === "assistant" && latestMessage.content) {
+      setCompletion(undefined);
+      setCompletionMessageId(undefined);
+    }
+  }, [messages, chatId]);
 
   return (
     <Flex className="h-dvh">

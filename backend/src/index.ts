@@ -220,7 +220,7 @@ const app = new Hono()
   .get("/env", (c) => c.json(env.client))
   .post(
     "/login",
-    zValidator("json", z.object({ email: z.string() })),
+    zValidator("json", z.object({ email: z.string().nonempty() })),
     async (c) => {
       const { email } = c.req.valid("json");
 
@@ -239,7 +239,7 @@ const app = new Hono()
         return c.json({ token }, 201);
       }
 
-      error(c, 401);
+      return error(c, 401);
     },
   )
   .post(
@@ -247,17 +247,22 @@ const app = new Hono()
     zValidator("json", z.object({ email: z.string(), first_name: z.string() })),
     async (c) => {
       const input = c.req.valid("json");
-      const person = await db
-        .insertInto("person")
-        .values(input)
-        .returningAll()
-        .executeTakeFirst();
 
-      if (person) {
-        return c.json(person, 201);
+      if (env.server.EMAIL_VALIDATION_REGEX.test(input.email)) {
+        const person = await db
+          .insertInto("person")
+          .values(input)
+          .returningAll()
+          .executeTakeFirst();
+
+        if (person) {
+          return c.json(person, 201);
+        }
+
+        return error(c, 401);
       }
 
-      return error(c, 401);
+      return c.json({ error: "invalid email" }, 400);
     },
   )
   .get("/", (c) => c.json({ ok: true }));

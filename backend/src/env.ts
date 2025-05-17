@@ -10,6 +10,11 @@ const env = {
       process.env.POSTGRES_CONNECTION_STRING ?? "postgres://localhost",
     OPENAI_API_KEY:
       process.env.OPENAI_API_KEY ?? throwIfUnset("OPENAI_API_KEY"),
+    EMAIL_VALIDATION_REGEX: new RegExp(
+      process.env.EMAIL_VALIDATION_REGEX ??
+        // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/email#basic_validation
+        "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
+    ),
   },
   client: {
     SITE_TITLE: process.env.SITE_TITLE ?? "fossai - AI Assistant",

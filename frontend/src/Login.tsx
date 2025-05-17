@@ -13,7 +13,7 @@ import {
 import { Form } from "radix-ui";
 import backdrop from "./assets/backdrop.png";
 import { client } from "./lib/honoClient";
-import { EnvContext } from './context'
+import { EnvContext } from "./context";
 
 function Login({ setToken }: { setToken: (token: string) => void }) {
   const env = useContext(EnvContext);

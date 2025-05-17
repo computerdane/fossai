@@ -2,6 +2,9 @@ import { client } from "../lib/honoClient";
 
 export const getMe = async (headers: Record<string, string>) => {
   const res = await client.api.me.$get({}, { headers });
+  if (!res.ok) {
+    throw new Error("Failed to get Me");
+  }
   return await res.json();
 };
 
@@ -12,11 +15,11 @@ export const getChats = async (headers: Record<string, string>) => {
 
 export const getMessages = async (
   headers: Record<string, string>,
-  chatId: string
+  chatId: string,
 ) => {
   const res = await client.api.chat[":id"].messages.$get(
     { param: { id: chatId } },
-    { headers }
+    { headers },
   );
   return await res.json();
 };
