@@ -57,9 +57,12 @@ function App() {
     queryKey: ["messages", chatId],
     queryFn: async () => {
       if (!chatId) return [];
-      const res = await client.api.chat[":id"].messages.$get({
-        param: { id: chatId },
-      });
+      const res = await client.api.chat[":id"].messages.$get(
+        {
+          param: { id: chatId },
+        },
+        { headers },
+      );
       return await res.json();
     },
     enabled: !!chatId,
@@ -81,10 +84,13 @@ function App() {
       chatId: string;
       content: string;
     }) => {
-      const res = await client.api.chat[":id"].message.$post({
-        param: { id: chatId },
-        json: { content, role: "user" },
-      });
+      const res = await client.api.chat[":id"].message.$post(
+        {
+          param: { id: chatId },
+          json: { content, role: "user" },
+        },
+        { headers },
+      );
       const { id } = await res.json();
       return id;
     },
@@ -111,10 +117,13 @@ function App() {
 
   async function generateAiMessage(currentMessages: typeof messages) {
     if (chatId && currentMessages?.at(-1)?.role === "user") {
-      const res = await client.api.chat[":id"].message.$post({
-        param: { id: chatId },
-        json: { content: "", role: "assistant", model },
-      });
+      const res = await client.api.chat[":id"].message.$post(
+        {
+          param: { id: chatId },
+          json: { content: "", role: "assistant", model },
+        },
+        { headers },
+      );
       const { id } = await res.json();
       await queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
       setCompletionMessageId(id);
@@ -135,10 +144,13 @@ function App() {
         }
       }
 
-      await client.api.message[":id"].$put({
-        param: { id },
-        json: { content },
-      });
+      await client.api.message[":id"].$put(
+        {
+          param: { id },
+          json: { content },
+        },
+        { headers },
+      );
 
       await queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
     }

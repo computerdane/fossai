@@ -1,4 +1,10 @@
-import { createContext, StrictMode, useContext, useState } from "react";
+import {
+  createContext,
+  StrictMode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { createRoot } from "react-dom/client";
 import "@radix-ui/themes/styles.css";
 import "./index.css";
@@ -18,42 +24,60 @@ export const HonoContext = createContext(client);
 const env = await (await client.env.$get()).json();
 export const EnvContext = createContext<ClientEnvType>(env);
 
-export const AuthContext = createContext<{ headers: Record<string, string> }>(
-  null!,
-);
+export const AuthContext = createContext<{
+  token: string;
+  headers: Record<string, string>;
+}>(null!);
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const env = useContext(EnvContext);
-  const [token, setToken] = useState<string>();
+  const [token, setToken] = useState<string>(null!);
 
   if (!env.DISABLE_AUTH && !token) return <Login setToken={setToken} />;
   return (
     <AuthContext.Provider
-      value={{ headers: { Authorization: `Bearer ${token}` } }}
+      value={{ token, headers: { Authorization: `Bearer ${token}` } }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
 
-const openai = new OpenAI({
-  baseURL: client.api.openai[":path{.+}"]
-    .$url({ param: { path: "" } })
-    .toString(),
-  apiKey: "",
-  dangerouslyAllowBrowser: true,
-});
-export const OpenAiContext = createContext(openai);
-
-let models = [];
-for await (const model of openai.models.list()) {
-  if (new RegExp(env.CHAT_MODELS_FILTER_REGEX).test(model.id)) {
-    models.push(model.id);
-  }
+export const OpenAiContext = createContext<OpenAI>(null!);
+function OpenAiContextProvider({ children }: { children: React.ReactNode }) {
+  const { token } = useContext(AuthContext);
+  const openai = new OpenAI({
+    baseURL: client.api.openai[":path{.+}"]
+      .$url({ param: { path: "" } })
+      .toString(),
+    apiKey: token,
+    dangerouslyAllowBrowser: true,
+  });
+  return (
+    <OpenAiContext.Provider value={openai}>{children}</OpenAiContext.Provider>
+  );
 }
-models.sort();
-const appContext = { models };
 
-export const AppContext = createContext(appContext);
+export const AppContext = createContext<{ models: string[] }>(null!);
+function AppContextProvider({ children }: { children: React.ReactNode }) {
+  const openai = useContext(OpenAiContext);
+  const [models, setModels] = useState<string[]>(null!);
+  useEffect(() => {
+    (async () => {
+      let modelList: string[] = [];
+      for await (const model of openai.models.list()) {
+        if (new RegExp(env.CHAT_MODELS_FILTER_REGEX).test(model.id)) {
+          modelList.push(model.id);
+        }
+      }
+      modelList.sort();
+      setModels(modelList);
+    })();
+  }, []);
+  if (!models) return "Loading...";
+  return (
+    <AppContext.Provider value={{ models }}>{children}</AppContext.Provider>
+  );
+}
 
 const queryClient = new QueryClient();
 
@@ -69,21 +93,21 @@ createRoot(document.getElementById("root")!).render(
                   <Route
                     path="/"
                     element={
-                      <AppContext.Provider value={appContext}>
-                        <OpenAiContext.Provider value={openai}>
+                      <OpenAiContextProvider>
+                        <AppContextProvider>
                           <App />
-                        </OpenAiContext.Provider>
-                      </AppContext.Provider>
+                        </AppContextProvider>
+                      </OpenAiContextProvider>
                     }
                   />
                   <Route
                     path="/c/:chatId"
                     element={
-                      <AppContext.Provider value={appContext}>
-                        <OpenAiContext.Provider value={openai}>
+                      <OpenAiContextProvider>
+                        <AppContextProvider>
                           <App />
-                        </OpenAiContext.Provider>
-                      </AppContext.Provider>
+                        </AppContextProvider>
+                      </OpenAiContextProvider>
                     }
                   />
                 </Routes>
