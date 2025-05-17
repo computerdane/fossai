@@ -11,7 +11,12 @@ import {
   TextField,
   Tooltip,
 } from "@radix-ui/themes";
-import { MagnifyingGlassIcon, Pencil2Icon } from "@radix-ui/react-icons";
+import {
+  MagnifyingGlassIcon,
+  Pencil1Icon,
+  Pencil2Icon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
 import { useContext, useEffect, useRef, useState } from "react";
 import {
   AuthContext,
@@ -230,26 +235,37 @@ function App() {
             </IconButton>
           </Tooltip>
         </Flex>
-        <ScrollArea className="grow px-1">
+        <ScrollArea className="grow px-1" scrollbars="vertical">
           <Flex direction="column" gap="1">
             <Heading size="1" weight="regular" color="gray">
               Previous Chats
             </Heading>
             {chats?.map((chat) => (
-              <Button
-                key={`chat-${chat.id}`}
-                variant={chat.id === chatId ? "solid" : "soft"}
-                asChild
-              >
-                <Link asChild>
-                  <RouterLink
-                    to={`/c/${chat.id}`}
-                    className="flex! justify-start!"
-                  >
-                    {chat.title}
-                  </RouterLink>
-                </Link>
-              </Button>
+              <Flex key={`chat-${chat.id}`} gap="1">
+                <Button
+                  variant={chat.id === chatId ? "solid" : "soft"}
+                  asChild
+                  className="grow! shrink! truncate! inline-block! text-left! pt-1.5!"
+                >
+                  <Link asChild>
+                    <RouterLink to={`/c/${chat.id}`}>{chat.title}</RouterLink>
+                  </Link>
+                </Button>
+                {chat.id === chatId && (
+                  <>
+                    <Tooltip content="Edit title">
+                      <IconButton size="1" variant="soft">
+                        <Pencil1Icon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip content="Delete chat">
+                      <IconButton size="1" variant="soft">
+                        <TrashIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </>
+                )}
+              </Flex>
             ))}
           </Flex>
         </ScrollArea>

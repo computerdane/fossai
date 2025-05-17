@@ -3,3 +3,7 @@
 .chat-area {
   @apply max-w-4xl grow;
 }
+
+.rt-ScrollAreaViewport > div {
+  @apply max-w-full;
+}
