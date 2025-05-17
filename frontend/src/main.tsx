@@ -14,6 +14,7 @@ import Login from "./Login.tsx";
 import { hc } from "hono/client";
 import type { AppType, ClientEnvType, Person } from "@fossai/backend";
 import { Theme } from "@radix-ui/themes";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const url = "http://localhost:3000";
 const defaultHonoContext = hc<AppType>(url);
@@ -77,6 +78,8 @@ function MeProvider({ children }: { children: React.ReactNode }) {
   return <MeContext.Provider value={me}>{children}</MeContext.Provider>;
 }
 
+const queryClient = new QueryClient();
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Theme accentColor="gray" appearance="dark">
@@ -84,11 +87,13 @@ createRoot(document.getElementById("root")!).render(
         <EnvProvider>
           <AuthProvider>
             <MeProvider>
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<App />} />
-                </Routes>
-              </BrowserRouter>
+              <QueryClientProvider client={queryClient}>
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/" element={<App />} />
+                  </Routes>
+                </BrowserRouter>
+              </QueryClientProvider>
             </MeProvider>
           </AuthProvider>
         </EnvProvider>

@@ -16,6 +16,8 @@ const env = {
     LOGIN_PAGE_TITLE: process.env.LOGIN_PAGE_TITLE ?? "fossai",
     LOGIN_PAGE_SUBTITLE: process.env.LOGIN_PAGE_SUBTITLE ?? "Free AI.",
     DISABLE_AUTH: !!process.env.DISABLE_AUTH,
+    CHAT_MODELS_FILTER_REGEX:
+      process.env.CHAT_MODELS_FILTER_REGEX ?? "^(gpt-[3|4].+|o[1|3|4].+)$",
   },
 };
 
