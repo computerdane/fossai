@@ -44,7 +44,6 @@ const openai = new OpenAI({
 });
 export const OpenaiContext = createContext(openai);
 
-const me = await (await client.api.me.$get()).json();
 let models = [];
 for await (const model of openai.models.list()) {
   if (new RegExp(env.CHAT_MODELS_FILTER_REGEX).test(model.id)) {
@@ -52,7 +51,7 @@ for await (const model of openai.models.list()) {
   }
 }
 models.sort();
-const appContext = { me, models };
+const appContext = { models };
 
 export const AppContext = createContext(appContext);
 

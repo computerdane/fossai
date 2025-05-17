@@ -1,5 +1,5 @@
 @reference "./index.css";
 
 .chat-area {
-  @apply w-5xl max-w-5xl mx-auto;
+  @apply max-w-5xl grow;
 }

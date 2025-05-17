@@ -2,6 +2,7 @@ import "./App.css";
 import {
   Box,
   Flex,
+  Heading,
   IconButton,
   ScrollArea,
   Select,
@@ -11,7 +12,6 @@ import {
 import { MagnifyingGlassIcon, Pencil2Icon } from "@radix-ui/react-icons";
 import { useContext, useState } from "react";
 import { AuthContext, HonoContext, AppContext } from "./main";
-import MessageBubble from "./components/Message";
 import { useQuery } from "@tanstack/react-query";
 import MessageInput from "./components/MessageInput";
 
@@ -22,13 +22,23 @@ function App() {
 
   const [model, setModel] = useState(models[0]);
 
-  const { error: chatsError, data: chats } = useQuery({
+  const { data: me } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => {
+      const res = await client.api.me.$get({}, { headers });
+      return await res.json();
+    },
+  });
+
+  const { data: chats } = useQuery({
     queryKey: ["chats"],
     queryFn: async () => {
       const res = await client.api.chats.$get({}, { headers });
       return await res.json();
     },
   });
+
+  const [chatId, setChatId] = useState(chats?.at(0)?.id);
 
   return (
     <Flex className="h-dvh">
@@ -52,123 +62,46 @@ function App() {
         </Flex>
       </Flex>
       <Flex direction="column" flexGrow="1" p="1">
-        <Box className="chat-area mb-1">
-          <Select.Root value={model} onValueChange={setModel}>
-            <Select.Trigger variant="soft" />
-            <Select.Content position="popper">
-              {models?.map((model) => (
-                <Select.Item key={model} value={model}>
-                  {model}
-                </Select.Item>
-              ))}
-            </Select.Content>
-          </Select.Root>
-        </Box>
-        <ScrollArea className="grow" size="2">
-          <Flex direction="column" gap="4" p="4" className="chat-area">
-            <MessageBubble
-              message={{ role: "user", content: "what up" }}
-              float="right"
-            ></MessageBubble>
-            <MessageBubble
-              message={{
-                role: "assistant",
-                model: "gpt-4",
-                content:
-                  "what upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat up",
-              }}
-              float="left"
-            ></MessageBubble>
-            <MessageBubble
-              message={{ role: "user", content: "what up" }}
-              float="right"
-            ></MessageBubble>
-            <MessageBubble
-              message={{
-                role: "assistant",
-                model: "gpt-4",
-                content: "eeeeeeee",
-              }}
-              float="left"
-            ></MessageBubble>
-            <MessageBubble
-              message={{ role: "user", content: "what up" }}
-              float="right"
-            ></MessageBubble>
-            <MessageBubble
-              message={{
-                role: "assistant",
-                model: "gpt-4",
-                content:
-                  "what upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat up",
-              }}
-              float="left"
-            ></MessageBubble>
-            <MessageBubble
-              message={{ role: "user", content: "what up" }}
-              float="right"
-            ></MessageBubble>
-            <MessageBubble
-              message={{
-                role: "assistant",
-                model: "gpt-4",
-                content: "eeeeeeee",
-              }}
-              float="left"
-            ></MessageBubble>
-            <MessageBubble
-              message={{ role: "user", content: "what up" }}
-              float="right"
-            ></MessageBubble>
-            <MessageBubble
-              message={{
-                role: "assistant",
-                model: "gpt-4",
-                content:
-                  "what upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat up",
-              }}
-              float="left"
-            ></MessageBubble>
-            <MessageBubble
-              message={{ role: "user", content: "what up" }}
-              float="right"
-            ></MessageBubble>
-            <MessageBubble
-              message={{
-                role: "assistant",
-                model: "gpt-4",
-                content: "eeeeeeee",
-              }}
-              float="left"
-            ></MessageBubble>
-            <MessageBubble
-              message={{ role: "user", content: "what up" }}
-              float="right"
-            ></MessageBubble>
-            <MessageBubble
-              message={{
-                role: "assistant",
-                model: "gpt-4",
-                content:
-                  "what upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat upwhat up",
-              }}
-              float="left"
-            ></MessageBubble>
-            <MessageBubble
-              message={{ role: "user", content: "what up" }}
-              float="right"
-            ></MessageBubble>
-            <MessageBubble
-              message={{
-                role: "assistant",
-                model: "gpt-4",
-                content: "eeeeeeee",
-              }}
-              float="left"
-            ></MessageBubble>
+        <Flex justify="center">
+          <Box className="chat-area mb-1">
+            <Select.Root value={model} onValueChange={setModel}>
+              <Select.Trigger variant="soft" />
+              <Select.Content position="popper">
+                {models?.map((model) => (
+                  <Select.Item key={model} value={model}>
+                    {model}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
+          </Box>
+        </Flex>
+        {chatId ? (
+          <>
+            <ScrollArea className="grow" size="2">
+              <Flex justify="center">
+                <Flex direction="column" gap="4" p="4" className="chat-area">
+                  hi
+                </Flex>
+              </Flex>
+            </ScrollArea>
+            <Flex justify="center">
+              <Flex direction="column" className="chat-area">
+                <MessageInput model={model} />
+              </Flex>
+            </Flex>
+          </>
+        ) : (
+          <Flex flexGrow="1" justify="center">
+            <Flex direction="column" className="my-auto chat-area">
+              <Heading size="5" m="2" weight="regular">
+                Hi {me && me.email != "anon" ? me.first_name : "there"}! How can
+                I help you?
+              </Heading>
+              <MessageInput model={model} />
+            </Flex>
           </Flex>
-        </ScrollArea>
-        <MessageInput model={model} />
+        )}
       </Flex>
     </Flex>
   );

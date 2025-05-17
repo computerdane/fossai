@@ -58,7 +58,7 @@ const api = new Hono()
         .selectFrom("person")
         .selectAll()
         .where("id", "=", c.get("personId"))
-        .executeTakeFirst(),
+        .executeTakeFirstOrThrow(),
     ),
   );
 
