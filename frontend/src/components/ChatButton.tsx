@@ -5,7 +5,7 @@ import EditChatDialog from "./EditChatDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
 import { AuthContext } from "../context";
-import { client } from "../api/honoClient";
+import { deleteChat } from "../api/mutations";
 
 function ChatButton({
   chat,
@@ -18,13 +18,8 @@ function ChatButton({
 
   const queryClient = useQueryClient();
   const deleteMutation = useMutation({
-    mutationFn: async () => {
-      await client.api.chat[":id"].$delete(
-        { param: { id: chat.id } },
-        { headers },
-      );
-    },
-    onSuccess() {
+    mutationFn: () => deleteChat(headers, chat.id),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["chats"] });
     },
   });

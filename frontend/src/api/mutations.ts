@@ -28,3 +28,21 @@ export const createNewChat = async (
   await createNewMessage(headers, id, content);
   return id;
 };
+
+export const deleteChat = async (headers: Record<string, string>, chatId: string) => {
+  await client.api.chat[":id"].$delete(
+    { param: { id: chatId } },
+    { headers },
+  );
+};
+
+export const updateChatTitle = async (
+  headers: Record<string, string>,
+  chatId: string,
+  title: string
+) => {
+  await client.api.chat[":id"].$put(
+    { param: { id: chatId }, json: { title } },
+    { headers }
+  );
+};
