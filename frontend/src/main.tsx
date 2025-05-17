@@ -76,6 +76,16 @@ createRoot(document.getElementById("root")!).render(
                       </AppContext.Provider>
                     }
                   />
+                  <Route
+                    path="/c/:chatId"
+                    element={
+                      <AppContext.Provider value={appContext}>
+                        <OpenaiContext.Provider value={openai}>
+                          <App />
+                        </OpenaiContext.Provider>
+                      </AppContext.Provider>
+                    }
+                  />
                 </Routes>
               </BrowserRouter>
             </QueryClientProvider>

@@ -43,15 +43,6 @@ const api = new Hono()
           },
     ),
   )
-  .all("/openai/:path{.+}", async (c) => {
-    return proxy(`https://api.openai.com/v1/${c.req.param("path")}`, {
-      ...c.req,
-      headers: openaiHeaders,
-    });
-  })
-  .get("/chats", async (c) =>
-    c.json(await db.selectFrom("chat").selectAll().execute()),
-  )
   .get("/me", async (c) =>
     c.json(
       await db
@@ -60,6 +51,33 @@ const api = new Hono()
         .where("id", "=", c.get("personId"))
         .executeTakeFirstOrThrow(),
     ),
+  )
+  .all("/openai/:path{.+}", async (c) => {
+    return proxy(`https://api.openai.com/v1/${c.req.param("path")}`, {
+      ...c.req,
+      headers: openaiHeaders,
+    });
+  })
+  .get("/chats", async (c) =>
+    c.json(
+      await db
+        .selectFrom("chat")
+        .selectAll()
+        .where("person_id", "=", c.get("personId"))
+        .execute(),
+    ),
+  )
+  .post(
+    "/chat",
+    zValidator("json", z.object({ title: z.string() })),
+    async (c) =>
+      c.json(
+        await db
+          .insertInto("chat")
+          .values({ ...c.req.valid("json"), person_id: c.get("personId") })
+          .returning("id")
+          .executeTakeFirstOrThrow(),
+      ),
   );
 
 const app = new Hono()

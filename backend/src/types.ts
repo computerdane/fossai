@@ -18,6 +18,7 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 export interface Chat {
   created_at: Generated<Timestamp>;
   id: Generated<Int8>;
+  person_id: Int8;
   title: string;
 }
 

@@ -6,6 +6,7 @@ create table if not exists person (
 
 create table if not exists chat (
     id bigint primary key generated always as identity,
+    person_id bigint not null references person(id),
     created_at timestamp not null default now(),
     title text not null
 );
