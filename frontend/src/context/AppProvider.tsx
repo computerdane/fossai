@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { OpenAiContext, EnvContext, AppContext } from ".";
+import Spinner from "../components/Spinner";
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const openai = useContext(OpenAiContext);
@@ -19,7 +20,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     })();
   }, [env.CHAT_MODELS_FILTER_REGEX, openai.models]);
 
-  if (!models) return <>Loading...</>;
+  if (!models) return (<Spinner/>)
 
   return <AppContext.Provider value={{ models }}>{children}</AppContext.Provider>;
 }
