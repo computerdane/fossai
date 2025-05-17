@@ -22,6 +22,7 @@ import MessageBubble from "./components/MessageBubble";
 function App() {
   const { chatId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { models } = useContext(AppContext);
   const client = useContext(HonoContext);
@@ -50,7 +51,7 @@ function App() {
   });
 
   const { data: messages } = useQuery({
-    queryKey: ["messages"],
+    queryKey: ["messages", chatId],
     queryFn: async () => {
       if (!chatId) return [];
       const res = await client.api.chat[":id"].messages.$get({
@@ -58,9 +59,10 @@ function App() {
       });
       return await res.json();
     },
+    enabled: !!chatId,
+    staleTime: Infinity,
   });
 
-  const queryClient = useQueryClient();
   const newChatMutation = useMutation({
     mutationFn: async (content: string) => {
       const res = await client.api.chat.$post(
@@ -72,11 +74,11 @@ function App() {
         param: { id },
         json: { content, role: "user" },
       });
-      await navigate(`/c/${id}`);
+      return id;
     },
-    onSuccess() {
+    onSuccess(id) {
       queryClient.invalidateQueries({ queryKey: ["chats"] });
-      queryClient.invalidateQueries({ queryKey: ["messages"] });
+      navigate(`/c/${id}`);
     },
   });
 

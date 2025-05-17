@@ -64,6 +64,7 @@ const api = new Hono()
         .selectFrom("chat")
         .selectAll()
         .where("person_id", "=", c.get("personId"))
+        .orderBy("created_at", "desc")
         .execute(),
     ),
   )
