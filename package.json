@@ -1,9 +1,14 @@
 {
   "name": "fossai",
   "private": true,
-  "workspaces": ["frontend", "backend"],
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "pretty-quick": "^4.1.1",
+    "simple-git-hooks": "^2.13.0"
   },
   "peerDependencies": {
     "typescript": "^5"
