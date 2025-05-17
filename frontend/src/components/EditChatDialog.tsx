@@ -2,7 +2,8 @@ import { Button, Dialog, Flex, TextField } from "@radix-ui/themes";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form } from "radix-ui";
 import { useContext, useRef, useState } from "react";
-import { AuthContext, HonoContext } from "../main";
+import { AuthContext } from "../context";
+import { client } from "../api/honoClient";
 
 function EditChatDialog({
   childrenFn,
@@ -15,7 +16,6 @@ function EditChatDialog({
 
   const [open, setOpen] = useState(false);
 
-  const client = useContext(HonoContext);
   const { headers } = useContext(AuthContext);
 
   const queryClient = useQueryClient();

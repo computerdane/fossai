@@ -1,13 +1,6 @@
 import "./App.css";
 import { Box, Flex, Heading, ScrollArea, Select } from "@radix-ui/themes";
 import { useContext, useEffect, useRef, useState } from "react";
-import {
-  AuthContext,
-  HonoContext,
-  AppContext,
-  OpenAiContext,
-  EnvContext,
-} from "./main";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import MessageInput from "./components/MessageInput";
 import { useNavigate, useParams } from "react-router";
@@ -15,6 +8,8 @@ import MessageBubble from "./components/MessageBubble";
 import Sidebar from "./components/Sidebar";
 import { createNewChat, createNewMessage } from "./api/mutations";
 import { getChats, getMe, getMessages } from "./api/queries";
+import {EnvContext, AuthContext, OpenAiContext, AppContext} from './context'
+import { client } from "./api/honoClient";
 
 function App() {
   const { chatId } = useParams();
@@ -23,7 +18,6 @@ function App() {
 
   const env = useContext(EnvContext);
   const { models } = useContext(AppContext);
-  const client = useContext(HonoContext);
   const { headers } = useContext(AuthContext);
   const openai = useContext(OpenAiContext);
 
