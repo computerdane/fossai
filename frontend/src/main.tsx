@@ -11,14 +11,12 @@ import "./index.css";
 import App from "./App.tsx";
 import { BrowserRouter, Route, Routes } from "react-router";
 import Login from "./Login.tsx";
-import { hc } from "hono/client";
-import type { AppType, ClientEnvType } from "@fossai/backend";
+import type { ClientEnvType } from "@fossai/backend";
 import { Theme } from "@radix-ui/themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import OpenAI from "openai";
+import { client } from "./api/honoClient.ts";
 
-const url = "http://localhost:3000";
-const client = hc<AppType>(url);
 export const HonoContext = createContext(client);
 
 const env = await (await client.env.$get()).json();
