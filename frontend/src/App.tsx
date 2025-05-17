@@ -1,18 +1,15 @@
 import "./App.css";
 import { Box, Flex, Heading, ScrollArea, Select } from "@radix-ui/themes";
 import { useContext, useEffect, useRef, useState } from "react";
-import {
-  AuthContext,
-  HonoContext,
-  AppContext,
-  OpenAiContext,
-  EnvContext,
-} from "./main";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import MessageInput from "./components/MessageInput";
 import { useNavigate, useParams } from "react-router";
 import MessageBubble from "./components/MessageBubble";
 import Sidebar from "./components/Sidebar";
+import { createNewChat, createNewMessage } from "./api/mutations";
+import { getChats, getMe, getMessages } from "./api/queries";
+import {EnvContext, AuthContext, OpenAiContext, AppContext} from './context'
+import { client } from "./lib/honoClient";
 
 function App() {
   const { chatId } = useParams();
@@ -21,7 +18,6 @@ function App() {
 
   const env = useContext(EnvContext);
   const { models } = useContext(AppContext);
-  const client = useContext(HonoContext);
   const { headers } = useContext(AuthContext);
   const openai = useContext(OpenAiContext);
 
@@ -31,36 +27,24 @@ function App() {
 
   const { data: me } = useQuery({
     queryKey: ["me"],
-    queryFn: async () => {
-      const res = await client.api.me.$get({}, { headers });
-      return await res.json();
-    },
+    queryFn: () => getMe(headers),
   });
 
-  const { data: chats } = useQuery({
+  const { data: chats, isSuccess } = useQuery({
     queryKey: ["chats"],
-    queryFn: async () => {
-      const res = await client.api.chats.$get({}, { headers });
-      const chats = await res.json();
-      if (!chats.find((chat) => chat.id === chatId)) {
-        navigate("/");
-      }
-      return chats;
-    },
+    queryFn: () => getChats(headers),
   });
+
+  useEffect(() => {
+  if (isSuccess && chatId && chats && !chats.find((chat) => chat.id === chatId)) {
+    navigate("/");
+  }
+  }, [isSuccess, chatId, chats, navigate]);
+
 
   const { data: messages } = useQuery({
     queryKey: ["messages", chatId],
-    queryFn: async () => {
-      if (!chatId) return [];
-      const res = await client.api.chat[":id"].messages.$get(
-        {
-          param: { id: chatId },
-        },
-        { headers },
-      );
-      return await res.json();
-    },
+    queryFn: () => (getMessages(headers, chatId!)),
     enabled: !!chatId,
     staleTime: Infinity,
   });
@@ -73,41 +57,16 @@ function App() {
   }
 
   const newMessageMutation = useMutation({
-    mutationFn: async ({
-      chatId,
-      content,
-    }: {
-      chatId: string;
-      content: string;
-    }) => {
-      const res = await client.api.chat[":id"].message.$post(
-        {
-          param: { id: chatId },
-          json: { content, role: "user" },
-        },
-        { headers },
-      );
-      const { id } = await res.json();
-      return id;
-    },
-    onSuccess() {
-      queryClient.invalidateQueries({ queryKey: ["messages"] });
-    },
+    mutationFn: ({ chatId, content }: { chatId: string; content: string }) =>
+      createNewMessage(headers, chatId, content),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["messages"] }),
   });
 
   const newChatMutation = useMutation({
-    mutationFn: async (content: string) => {
-      const res = await client.api.chat.$post(
-        { json: { title: "New Chat" } },
-        { headers },
-      );
-      const { id } = await res.json();
-      await newMessageMutation.mutateAsync({ chatId: id, content });
-      return id;
-    },
-    async onSuccess(id) {
+    mutationFn: (content: string) => createNewChat(headers, content),
+    onSuccess: async (id) => {
       await queryClient.invalidateQueries({ queryKey: ["chats"] });
-      await navigate(`/c/${id}`);
+      navigate(`/c/${id}`);
     },
   });
 
@@ -181,20 +140,16 @@ function App() {
     }
   }
 
-  useEffect(() => {
-    scrollToBottom();
+useEffect(() => {
+  scrollToBottom();
+  const latestMessage = messages?.at(-1);
+  if (chatId && latestMessage?.role === "user") {
     generateAiMessage(messages);
-
-    const latestMessage = messages?.at(-1);
-    if (latestMessage?.role === "assistant" && latestMessage.content) {
-      setCompletion(undefined);
-      setCompletionMessageId(undefined);
-    }
-  }, [messages]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [completion]);
+  } else if (latestMessage?.role === "assistant" && latestMessage.content) {
+    setCompletion(undefined);
+    setCompletionMessageId(undefined);
+  }
+}, [messages, chatId]);
 
   return (
     <Flex className="h-dvh">

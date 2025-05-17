@@ -2,7 +2,8 @@ import { Button, Dialog, Flex, TextField } from "@radix-ui/themes";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form } from "radix-ui";
 import { useContext, useRef, useState } from "react";
-import { AuthContext, HonoContext } from "../main";
+import { AuthContext } from "../context";
+import { updateChatTitle } from "../api/mutations";
 
 function EditChatDialog({
   childrenFn,
@@ -15,18 +16,12 @@ function EditChatDialog({
 
   const [open, setOpen] = useState(false);
 
-  const client = useContext(HonoContext);
   const { headers } = useContext(AuthContext);
 
   const queryClient = useQueryClient();
   const saveMutation = useMutation({
-    mutationFn: async (title: string) => {
-      await client.api.chat[":id"].$put(
-        { param: { id: chat.id }, json: { title } },
-        { headers },
-      );
-    },
-    onSuccess() {
+    mutationFn: (title: string) => updateChatTitle(headers, chat.id, title),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["chats"] });
     },
   });
