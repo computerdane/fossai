@@ -3,13 +3,7 @@ import { Box, Card, Heading, Text } from "@radix-ui/themes";
 import clsx from "clsx";
 import type { Updateable } from "kysely";
 
-function MessageBubble({
-  message,
-  completion,
-}: {
-  message: Updateable<Message>;
-  completion?: string;
-}) {
+function MessageBubble({ message }: { message: Updateable<Message> }) {
   const float = message.role === "user" ? "right" : "left";
 
   return (
@@ -22,7 +16,7 @@ function MessageBubble({
             {message.model}
           </Heading>
         )}
-        <Text as="p">{completion ?? message.content}</Text>
+        <Text as="p">{message.content}</Text>
       </Card>
     </Box>
   );

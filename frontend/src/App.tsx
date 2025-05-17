@@ -12,7 +12,7 @@ import {
   Tooltip,
 } from "@radix-ui/themes";
 import { MagnifyingGlassIcon, Pencil2Icon } from "@radix-ui/react-icons";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext, HonoContext, AppContext, OpenAiContext } from "./main";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import MessageInput from "./components/MessageInput";
@@ -30,8 +30,8 @@ function App() {
   const openai = useContext(OpenAiContext);
 
   const [model, setModel] = useState(models[0]);
-  const [completionModel, setCompletionModel] = useState(model);
   const [completion, setCompletion] = useState<string>();
+  const [completionMessageId, setCompletionMessageId] = useState<string>();
 
   const { data: me } = useQuery({
     queryKey: ["me"],
@@ -66,9 +66,11 @@ function App() {
     staleTime: Infinity,
   });
 
-  const scrollAreaRef = useRef<HTMLDivElement>(null!);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   function scrollToBottom() {
-    scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
   }
 
   const newMessageMutation = useMutation({
@@ -79,10 +81,12 @@ function App() {
       chatId: string;
       content: string;
     }) => {
-      await client.api.chat[":id"].message.$post({
+      const res = await client.api.chat[":id"].message.$post({
         param: { id: chatId },
         json: { content, role: "user" },
       });
+      const { id } = await res.json();
+      return id;
     },
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["messages"] });
@@ -105,14 +109,23 @@ function App() {
     },
   });
 
-  const generateAiMessage = useCallback(async () => {
-    if (chatId && messages?.at(-1)?.role === "user") {
-      const currentModel = model;
-      setCompletionModel(currentModel);
+  async function generateAiMessage(currentMessages: typeof messages) {
+    if (chatId && currentMessages?.at(-1)?.role === "user") {
+      const res = await client.api.chat[":id"].message.$post({
+        param: { id: chatId },
+        json: { content: "", role: "assistant", model },
+      });
+      const { id } = await res.json();
+      await queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
+      setCompletionMessageId(id);
+
       let content = "";
       for await (const chunk of await openai.chat.completions.create({
         model,
-        messages: messages.map(({ role, content }) => ({ role, content })),
+        messages: currentMessages.map(({ role, content }) => ({
+          role,
+          content,
+        })),
         stream: true,
       })) {
         const delta = chunk.choices.at(0)?.delta.content;
@@ -121,18 +134,25 @@ function App() {
           setCompletion(content);
         }
       }
-      await client.api.chat[":id"].message.$post({
-        param: { id: chatId },
-        json: { content, role: "assistant", model: currentModel },
+
+      await client.api.message[":id"].$put({
+        param: { id },
+        json: { content },
       });
-      setCompletion(undefined);
-      queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
+
+      await queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
     }
-  }, [messages, chatId]);
+  }
 
   useEffect(() => {
     scrollToBottom();
-    generateAiMessage();
+    generateAiMessage(messages);
+
+    const latestMessage = messages?.at(-1);
+    if (latestMessage?.role === "assistant" && latestMessage.content) {
+      setCompletion(undefined);
+      setCompletionMessageId(undefined);
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -208,19 +228,13 @@ function App() {
                   {messages?.map((message) => (
                     <MessageBubble
                       key={`message-${message.chat_id}-${message.id}`}
-                      message={message}
+                      message={
+                        completion && completionMessageId === message.id
+                          ? { ...message, content: completion }
+                          : message
+                      }
                     />
                   ))}
-                  {completion && (
-                    <MessageBubble
-                      key="completion"
-                      message={{
-                        role: "assistant",
-                        model: completionModel,
-                        content: completion,
-                      }}
-                    />
-                  )}
                 </Flex>
               </Flex>
             </ScrollArea>

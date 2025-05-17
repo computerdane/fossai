@@ -126,6 +126,7 @@ const api = new Hono()
       const { id } = await db
         .selectFrom("message")
         .select("message.id")
+        .where("message.id", "=", c.req.param("id"))
         .innerJoin("chat", "chat.id", "message.chat_id")
         .innerJoin("person", "person.id", "chat.person_id")
         .where("person.id", "=", c.get("personId"))
@@ -133,7 +134,7 @@ const api = new Hono()
       return c.json(
         await db
           .updateTable("message")
-          .set("content", c.req.valid("json").content)
+          .set({ content: c.req.valid("json").content })
           .where("id", "=", id)
           .returningAll()
           .executeTakeFirstOrThrow(),
