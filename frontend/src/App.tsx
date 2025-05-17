@@ -17,6 +17,7 @@ import { AuthContext, HonoContext, AppContext } from "./main";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import MessageInput from "./components/MessageInput";
 import { Link as RouterLink, useNavigate, useParams } from "react-router";
+import MessageBubble from "./components/MessageBubble";
 
 function App() {
   const { chatId } = useParams();
@@ -40,22 +41,42 @@ function App() {
     queryKey: ["chats"],
     queryFn: async () => {
       const res = await client.api.chats.$get({}, { headers });
+      const chats = await res.json();
+      if (!chats.find((chat) => chat.id === chatId)) {
+        navigate("/");
+      }
+      return chats;
+    },
+  });
+
+  const { data: messages } = useQuery({
+    queryKey: ["messages"],
+    queryFn: async () => {
+      if (!chatId) return [];
+      const res = await client.api.chat[":id"].messages.$get({
+        param: { id: chatId },
+      });
       return await res.json();
     },
   });
 
   const queryClient = useQueryClient();
   const newChatMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (content: string) => {
       const res = await client.api.chat.$post(
         { json: { title: "New Chat" } },
         { headers },
       );
       const { id } = await res.json();
-      navigate(`/c/${id}`);
+      await client.api.chat[":id"].message.$post({
+        param: { id },
+        json: { content, role: "user" },
+      });
+      await navigate(`/c/${id}`);
     },
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["chats"] });
+      queryClient.invalidateQueries({ queryKey: ["messages"] });
     },
   });
 
@@ -87,7 +108,11 @@ function App() {
               Previous Chats
             </Heading>
             {chats?.map((chat) => (
-              <Button key={`chat-${chat.id}`} variant="soft" asChild>
+              <Button
+                key={`chat-${chat.id}`}
+                variant={chat.id === chatId ? "solid" : "soft"}
+                asChild
+              >
                 <Link asChild>
                   <RouterLink
                     to={`/c/${chat.id}`}
@@ -121,7 +146,13 @@ function App() {
             <ScrollArea className="grow" size="2">
               <Flex justify="center">
                 <Flex direction="column" gap="4" p="4" className="chat-area">
-                  hi
+                  {messages?.map((message) => (
+                    <MessageBubble
+                      key={`message=${message.id}`}
+                      message={message}
+                      float={message.role === "user" ? "right" : "left"}
+                    />
+                  ))}
                 </Flex>
               </Flex>
             </ScrollArea>
@@ -140,8 +171,8 @@ function App() {
               </Heading>
               <MessageInput
                 model={model}
-                onSubmit={() => {
-                  newChatMutation.mutate();
+                onSubmit={(content) => {
+                  newChatMutation.mutate(content);
                 }}
               />
             </Flex>

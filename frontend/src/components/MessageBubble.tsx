@@ -1,12 +1,13 @@
 import type { Message } from "@fossai/backend";
 import { Box, Card, Heading, Text } from "@radix-ui/themes";
 import clsx from "clsx";
+import type { Updateable } from "kysely";
 
 function MessageBubble({
   message,
   float,
 }: {
-  message: Message;
+  message: Updateable<Message>;
   float: "left" | "right";
 }) {
   return (

@@ -78,6 +78,45 @@ const api = new Hono()
           .returning("id")
           .executeTakeFirstOrThrow(),
       ),
+  )
+  .get("/chat/:id/messages", async (c) =>
+    c.json(
+      await db
+        .selectFrom("message")
+        .selectAll()
+        .where("chat_id", "=", c.req.param("id"))
+        .innerJoin("chat", "chat.id", "message.chat_id")
+        .innerJoin("person", "chat.person_id", "person.id")
+        .where("person.id", "=", c.get("personId"))
+        .orderBy("message.created_at", "asc")
+        .execute(),
+    ),
+  )
+  .post(
+    "/chat/:id/message",
+    zValidator(
+      "json",
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        model: z.optional(z.string()),
+        content: z.string(),
+      }),
+    ),
+    async (c) => {
+      const { id } = await db
+        .selectFrom("chat")
+        .select("id")
+        .where("person_id", "=", c.get("personId"))
+        .where("id", "=", c.req.param("id"))
+        .executeTakeFirstOrThrow();
+      return c.json(
+        await db
+          .insertInto("message")
+          .values({ ...c.req.valid("json"), chat_id: id })
+          .returningAll()
+          .executeTakeFirstOrThrow(),
+      );
+    },
   );
 
 const app = new Hono()
