@@ -9,14 +9,21 @@ import {
 } from "@radix-ui/themes";
 import { Link as RouterLink } from "react-router";
 import ChatButton from "./ChatButton";
+import { useState } from "react";
+import Fuse from "fuse.js";
 
 function Sidebar({
   chats,
   chatId,
 }: {
-  chats?: { id: string; title: string }[];
-  chatId?: string;
+  chats: { id: string; title: string }[];
+  chatId: string;
 }) {
+  const [search, setSearch] = useState("");
+
+  const fuse = new Fuse(chats, { keys: ["title"] });
+  chats = search ? fuse.search(search).map(({ item }) => item) : chats;
+
   return (
     <Flex
       direction="column"
@@ -30,6 +37,8 @@ function Sidebar({
           variant="soft"
           radius="full"
           className="grow"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
         >
           <TextField.Slot>
             <MagnifyingGlassIcon />
