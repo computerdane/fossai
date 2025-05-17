@@ -1,6 +1,7 @@
 import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { Button, Flex, IconButton, Link, Tooltip } from "@radix-ui/themes";
 import { Link as RouterLink } from "react-router";
+import EditChatDialog from "./EditChatDialog";
 
 function ChatButton({
   chat,
@@ -23,11 +24,16 @@ function ChatButton({
 
       {selected && (
         <>
-          <Tooltip content="Edit title">
-            <IconButton size="1" variant="soft">
-              <Pencil1Icon />
-            </IconButton>
-          </Tooltip>
+          <EditChatDialog
+            chat={chat}
+            childrenFn={(openDialog) => (
+              <Tooltip content="Edit chat">
+                <IconButton size="1" variant="soft" onClick={openDialog}>
+                  <Pencil1Icon />
+                </IconButton>
+              </Tooltip>
+            )}
+          />
 
           <Tooltip content="Delete chat">
             <IconButton size="1" variant="soft">
