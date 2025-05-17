@@ -80,6 +80,28 @@ const api = new Hono()
           .executeTakeFirstOrThrow(),
       ),
   )
+  .put(
+    "/chat/:id",
+    zValidator("json", z.object({ title: z.string() })),
+    async (c) => {
+      const { title } = c.req.valid("json");
+      const { id } = await db
+        .selectFrom("chat")
+        .select("chat.id")
+        .where("chat.id", "=", c.req.param("id"))
+        .innerJoin("person", "person.id", "chat.person_id")
+        .where("person.id", "=", c.get("personId"))
+        .executeTakeFirstOrThrow();
+      return c.json(
+        await db
+          .updateTable("chat")
+          .set("title", title)
+          .where("id", "=", id)
+          .returningAll()
+          .executeTakeFirstOrThrow(),
+      );
+    },
+  )
   .get("/chat/:id/messages", async (c) =>
     c.json(
       await db
@@ -134,7 +156,7 @@ const api = new Hono()
       return c.json(
         await db
           .updateTable("message")
-          .set({ content: c.req.valid("json").content })
+          .set("content", c.req.valid("json").content)
           .where("id", "=", id)
           .returningAll()
           .executeTakeFirstOrThrow(),

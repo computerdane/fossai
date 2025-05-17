@@ -18,6 +18,20 @@ const env = {
     DISABLE_AUTH: !!process.env.DISABLE_AUTH,
     CHAT_MODELS_FILTER_REGEX:
       process.env.CHAT_MODELS_FILTER_REGEX ?? "^(gpt-[3|4].+|o[1|3|4].+)$",
+    TITLE_GENERATION_PROMPT:
+      process.env.TITLE_GENERATION_PROMPT ??
+      `
+You are going to generate a brief chat title for a new chat with an AI
+assistant. Include one emoji at the start of the title. Here are some examples:
+
+- ⛈️ Weather forecast this week
+- 👔 How to tie a tie
+- ✈️ Cool facts about airplanes
+- 👋 Friendly greeting
+
+Ensure the title is a summary of the chat message, and make sure it is as
+accurate as possible, without anything made-up or inferred about the message.
+Here is the messsage: `,
   },
 };
 

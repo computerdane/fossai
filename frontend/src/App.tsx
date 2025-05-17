@@ -13,7 +13,13 @@ import {
 } from "@radix-ui/themes";
 import { MagnifyingGlassIcon, Pencil2Icon } from "@radix-ui/react-icons";
 import { useContext, useEffect, useRef, useState } from "react";
-import { AuthContext, HonoContext, AppContext, OpenAiContext } from "./main";
+import {
+  AuthContext,
+  HonoContext,
+  AppContext,
+  OpenAiContext,
+  EnvContext,
+} from "./main";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import MessageInput from "./components/MessageInput";
 import { Link as RouterLink, useNavigate, useParams } from "react-router";
@@ -24,6 +30,7 @@ function App() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const env = useContext(EnvContext);
   const { models } = useContext(AppContext);
   const client = useContext(HonoContext);
   const { headers } = useContext(AuthContext);
@@ -115,6 +122,32 @@ function App() {
     },
   });
 
+  async function generateTitle(content: string) {
+    if (chatId) {
+      console.log("caled");
+      const completions = await openai.chat.completions.create({
+        model,
+        messages: [
+          {
+            role: "system",
+            content: `${env.TITLE_GENERATION_PROMPT} ${content}`,
+          },
+        ],
+        max_tokens: 10,
+        top_p: 0.1,
+      });
+      const title = completions.choices.at(0)?.message.content;
+
+      if (title) {
+        await client.api.chat[":id"].$put(
+          { param: { id: chatId }, json: { title } },
+          { headers },
+        );
+        queryClient.invalidateQueries({ queryKey: ["chats"] });
+      }
+    }
+  }
+
   async function generateAiMessage(currentMessages: typeof messages) {
     if (chatId && currentMessages?.at(-1)?.role === "user") {
       const res = await client.api.chat[":id"].message.$post(
@@ -127,6 +160,10 @@ function App() {
       const { id } = await res.json();
       await queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
       setCompletionMessageId(id);
+
+      if (currentMessages.length === 1) {
+        generateTitle(currentMessages[0].content);
+      }
 
       let content = "";
       for await (const chunk of await openai.chat.completions.create({
