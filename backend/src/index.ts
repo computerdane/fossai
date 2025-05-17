@@ -78,6 +78,7 @@ const api = new Hono()
           .values({ ...c.req.valid("json"), person_id: c.get("personId") })
           .returning("id")
           .executeTakeFirstOrThrow(),
+        201,
       ),
   )
   .put(
@@ -149,6 +150,7 @@ const api = new Hono()
           .values({ ...c.req.valid("json"), chat_id: id })
           .returningAll()
           .executeTakeFirstOrThrow(),
+        201,
       );
     },
   )
@@ -213,7 +215,7 @@ const app = new Hono()
         .returningAll()
         .executeTakeFirst();
 
-      if (person) return c.json(person);
+      if (person) return c.json(person, 201);
 
       return c.json({ error: "unauthorized" }, 401);
     },
