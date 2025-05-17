@@ -22,6 +22,7 @@ const client = hc<AppType>(url);
 export const HonoContext = createContext(client);
 
 const env = await (await client.env.$get()).json();
+document.title = env.SITE_TITLE;
 export const EnvContext = createContext<ClientEnvType>(env);
 
 export const AuthContext = createContext<{
