@@ -1,15 +1,35 @@
 # fossai
 
-To install dependencies:
+Free AI.
 
-```bash
-bun install
+## Development
+
+Install dependencies:
+
+```sh
+  bun i
 ```
 
-To run:
+Start postgres database:
 
-```bash
-bun run index.ts
+```sh
+  pg_ctl -D /tmp/fossai init
+  pg_ctl -D /tmp/fossai start
 ```
 
-This project was created using `bun init` in bun v1.2.12. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+Start live backend dev server:
+
+```sh
+  cd backend
+  OPENAI_API_KEY={key} DISABLE_AUTH=1 bun dev
+```
+
+Start live frontend dev server:
+
+
+```sh
+  cd frontend
+  bun dev
+```
+
+Start editing code and both the backend / frontend will update automatically!
