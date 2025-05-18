@@ -8,8 +8,7 @@ import MessageBubble from "./components/MessageBubble";
 import Sidebar from "./components/Sidebar";
 import { createNewChat, createNewMessage } from "./api/mutations";
 import { getChats, getMe, getMessages } from "./api/queries";
-import { EnvContext, AuthContext, OpenAiContext, AppContext } from "./context";
-import { client } from "./lib/honoClient";
+import { AuthContext, OpenAiContext, AppContext } from "./context";
 import { useChatStreaming } from "./hooks/useChatStreaming";
 
 function App() {
@@ -17,7 +16,6 @@ function App() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const env = useContext(EnvContext);
   const { models } = useContext(AppContext);
   const { headers } = useContext(AuthContext);
   const openai = useContext(OpenAiContext);
@@ -73,38 +71,12 @@ function App() {
     },
   });
 
-  async function generateTitle(content: string) {
-    if (chatId) {
-      const completions = await openai.chat.completions.create({
-        model,
-        messages: [
-          {
-            role: "system",
-            content: `${env.TITLE_GENERATION_PROMPT} ${content}`,
-          },
-        ],
-        max_tokens: 10,
-        top_p: 0.1,
-      });
-      const title = completions.choices.at(0)?.message.content;
-
-      if (title) {
-        await client.api.chat[":id"].$put(
-          { param: { id: chatId }, json: { title } },
-          { headers }
-        );
-        queryClient.invalidateQueries({ queryKey: ["chats"] });
-      }
-    }
-  }
-
   const streaming = useChatStreaming({
     chatId: chatId!,
     messages: messages ?? [],
     model,
     openai,
     headers,
-    queryClient,
   });
 
   useEffect(scrollToBottom, [messages, streaming]);
@@ -153,9 +125,6 @@ function App() {
                   model={model}
                   onSubmit={(content) => {
                     newMessageMutation.mutate({ chatId, content });
-                    if ((messages?.length ?? 0) === 0) {
-                      generateTitle(content);
-                    }
                   }}
                 />
               </Flex>

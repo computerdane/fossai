@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { OpenAI } from "openai";
-import { QueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { client } from "../lib/honoClient";
 import type { ChatCompletionMessageParam } from "openai/resources/index.mjs";
+import { EnvContext } from "../context";
 
 interface UseChatStreamingArgs {
   chatId: string;
@@ -10,7 +11,6 @@ interface UseChatStreamingArgs {
   model: string;
   openai: OpenAI;
   headers: Record<string, string>;
-  queryClient: QueryClient;
 }
 
 export function useChatStreaming({
@@ -19,9 +19,36 @@ export function useChatStreaming({
   model,
   openai,
   headers,
-  queryClient,
 }: UseChatStreamingArgs) {
   const [streaming, setStreaming] = useState<Record<string, string>>({});
+  const queryClient = useQueryClient();
+
+  const env = useContext(EnvContext);
+
+  async function generateTitle(content: string) {
+    if (chatId) {
+      const completions = await openai.chat.completions.create({
+        model,
+        messages: [
+          {
+            role: "system",
+            content: `${env.TITLE_GENERATION_PROMPT} ${content}`,
+          },
+        ],
+        max_tokens: 10,
+        top_p: 0.1,
+      });
+      const title = completions.choices.at(0)?.message.content;
+
+      if (title) {
+        await client.api.chat[":id"].$put(
+          { param: { id: chatId }, json: { title } },
+          { headers }
+        );
+        queryClient.invalidateQueries({ queryKey: ["chats"] });
+      }
+    }
+  }
 
   useEffect(() => {
     const last = messages.at(-1);
@@ -64,6 +91,9 @@ export function useChatStreaming({
         { headers }
       );
       queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
+      if (messages.length === 1) {
+        generateTitle(messages[0].content);
+      }
     })();
   }, [chatId, model, messages, openai, headers, queryClient]);
 
