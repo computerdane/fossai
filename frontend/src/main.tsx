@@ -7,7 +7,12 @@ import "./index.css";
 import App from "./App.tsx";
 import { client } from "./lib/honoClient.ts";
 import { BrowserRouter, Route, Routes } from "react-router";
-import {EnvProvider, AuthProvider, OpenAiProvider, AppProvider} from './context'
+import {
+  EnvProvider,
+  AuthProvider,
+  OpenAiProvider,
+  AppProvider,
+} from "./context";
 
 // Fetch env eagerly before rendering
 const env = await (await client.env.$get()).json();
@@ -18,29 +23,29 @@ const queryClient = new QueryClient();
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Theme accentColor="gray" appearance="dark">
-        <EnvProvider env={env}>
+      <EnvProvider env={env}>
+        <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <QueryClientProvider client={queryClient}>
-              <BrowserRouter>
-                <Routes>
-                  {["/", "/c/:chatId"].map((path) => (
-                    <Route
-                      key={path}
-                      path={path}
-                      element={
-                        <OpenAiProvider>
-                          <AppProvider>
-                            <App />
-                          </AppProvider>
-                        </OpenAiProvider>
-                      }
-                    />
-                  ))}
-                </Routes>
-              </BrowserRouter>
-            </QueryClientProvider>
+            <BrowserRouter>
+              <Routes>
+                {["/", "/c/:chatId"].map((path) => (
+                  <Route
+                    key={path}
+                    path={path}
+                    element={
+                      <OpenAiProvider>
+                        <AppProvider>
+                          <App />
+                        </AppProvider>
+                      </OpenAiProvider>
+                    }
+                  />
+                ))}
+              </Routes>
+            </BrowserRouter>
           </AuthProvider>
-        </EnvProvider>
+        </QueryClientProvider>
+      </EnvProvider>
     </Theme>
   </StrictMode>
 );

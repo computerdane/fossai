@@ -8,6 +8,7 @@ import getDb from "./db";
 import { createMiddleware } from "hono/factory";
 import { proxy } from "hono/proxy";
 import error from "./error";
+import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 
 const db = await getDb();
 
@@ -29,7 +30,7 @@ const api = new Hono()
   .use(
     env.client.DISABLE_AUTH
       ? async (_, next) => await next()
-      : jwt({ secret: env.server.JWT_SECRET }),
+      : jwt({ secret: env.server.JWT_SECRET })
   )
   .use(
     createMiddleware<{ Variables: { personId: string } }>(
@@ -41,8 +42,8 @@ const api = new Hono()
         : async (c, next) => {
             c.set("personId", c.get("jwtPayload").id);
             await next();
-          },
-    ),
+          }
+    )
   )
   .get("/me", async (c) => {
     const person = await db
@@ -70,8 +71,8 @@ const api = new Hono()
         .selectAll()
         .where("person_id", "=", c.get("personId"))
         .orderBy("created_at", "desc")
-        .execute(),
-    ),
+        .execute()
+    )
   )
   .post(
     "/chat",
@@ -88,7 +89,7 @@ const api = new Hono()
       }
 
       return error(c, 500);
-    },
+    }
   )
   .put(
     "/chat/:id",
@@ -118,7 +119,7 @@ const api = new Hono()
       }
 
       return error(c, 404);
-    },
+    }
   )
   .delete("/chat/:id", async (c) => {
     const chat = await db
@@ -145,8 +146,8 @@ const api = new Hono()
         .innerJoin("chat", "chat.id", "message.chat_id")
         .where("person_id", "=", c.get("personId"))
         .orderBy("message.created_at", "asc")
-        .execute(),
-    ),
+        .execute()
+    )
   )
   .post(
     "/chat/:id/message",
@@ -156,7 +157,7 @@ const api = new Hono()
         role: z.enum(["user", "assistant"]),
         model: z.optional(z.string()),
         content: z.string(),
-      }),
+      })
     ),
     async (c) => {
       const chat = await db
@@ -181,7 +182,7 @@ const api = new Hono()
       }
 
       return error(c, 404);
-    },
+    }
   )
   .put(
     "/message/:id",
@@ -211,11 +212,16 @@ const api = new Hono()
       }
 
       return error(c, 404);
-    },
+    }
   );
 
 const app = new Hono()
-  .use(cors())
+  .use(
+    cors({
+      origin: "http://localhost:5173",
+      credentials: true,
+    })
+  )
   .route("/api", api)
   .get("/env", (c) => c.json(env.client))
   .post(
@@ -230,18 +236,105 @@ const app = new Hono()
         .where("email", "=", email)
         .executeTakeFirst();
 
-      if (person) {
-        const payload = {
-          id: person.id,
-          exp: Math.floor(Date.now() / 1000) + 60 * 5, // Token expires in 5 minutes
-        };
-        const token = await sign(payload, env.server.JWT_SECRET);
-        return c.json({ token }, 201);
-      }
+      if (!person) return error(c, 401);
 
-      return error(c, 401);
-    },
+      const token = await sign(
+        { id: person.id, exp: Math.floor(Date.now() / 1000) + 60 * 5 }, // 5 min
+        env.server.JWT_SECRET
+      );
+
+      const refreshToken = Bun.randomUUIDv7();
+      const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30); // 30d
+
+      await db
+        .insertInto("refresh_token")
+        .values({
+          person_id: person.id,
+          token: refreshToken,
+          expires_at: expiresAt.toISOString(),
+        })
+        .execute();
+
+      setCookie(c, "refresh_token", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        path: "/",
+        expires: expiresAt,
+      });
+
+      return c.json({ token }, 200);
+    }
   )
+  .post("/logout", async (c) => {
+    const refreshToken = getCookie(c, "refresh_token");
+
+    if (refreshToken) {
+      await db
+        .updateTable("refresh_token")
+        .set({ revoked: true })
+        .where("token", "=", refreshToken)
+        .execute();
+
+      deleteCookie(c, "refresh_token", {
+        httpOnly: true,
+        sameSite: "Strict",
+        path: "/",
+      });
+    }
+
+    return c.json({ success: true }, 200);
+  })
+  .post("/refresh", async (c) => {
+    const refreshToken = getCookie(c, "refresh_token");
+    if (!refreshToken) return error(c, 401);
+
+    const tokenRecord = await db
+      .selectFrom("refresh_token")
+      .select(["id", "person_id"])
+      .where("token", "=", refreshToken)
+      .where("revoked", "=", false)
+      .where("expires_at", ">", new Date().toISOString())
+      .executeTakeFirst();
+
+    if (!tokenRecord) return error(c, 401);
+
+    await db
+      .updateTable("refresh_token")
+      .set({ revoked: true })
+      .where("id", "=", tokenRecord.id)
+      .execute();
+
+    const newRefresh = Bun.randomUUIDv7();
+    const newExpires = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+
+    await db
+      .insertInto("refresh_token")
+      .values({
+        person_id: tokenRecord.person_id,
+        token: newRefresh,
+        expires_at: newExpires.toISOString(),
+      })
+      .execute();
+
+    setCookie(c, "refresh_token", newRefresh, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      path: "/",
+      expires: newExpires,
+    });
+
+    const token = await sign(
+      {
+        id: tokenRecord.person_id,
+        exp: Math.floor(Date.now() / 1000) + 60 * 5,
+      },
+      env.server.JWT_SECRET
+    );
+
+    return c.json({ token });
+  })
   .post(
     "/register",
     zValidator("json", z.object({ email: z.string(), first_name: z.string() })),
@@ -263,7 +356,7 @@ const app = new Hono()
       }
 
       return c.json({ error: "invalid email" }, 400);
-    },
+    }
   )
   .get("/", (c) => c.json({ ok: true }));
 

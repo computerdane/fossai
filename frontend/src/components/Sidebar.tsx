@@ -1,4 +1,8 @@
-import { MagnifyingGlassIcon, Pencil2Icon } from "@radix-ui/react-icons";
+import {
+  ExitIcon,
+  MagnifyingGlassIcon,
+  Pencil2Icon,
+} from "@radix-ui/react-icons";
 import {
   Flex,
   IconButton,
@@ -9,6 +13,8 @@ import {
 } from "@radix-ui/themes";
 import { Link as RouterLink } from "react-router";
 import ChatButton from "./ChatButton";
+import { useMutation } from "@tanstack/react-query";
+import { logout } from "../api/mutations";
 
 function Sidebar({
   chats,
@@ -17,6 +23,12 @@ function Sidebar({
   chats?: { id: string; title: string }[];
   chatId?: string;
 }) {
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSuccess: () => {
+      window.location.reload();
+    },
+  });
   return (
     <Flex
       direction="column"
@@ -57,6 +69,17 @@ function Sidebar({
           ))}
         </Flex>
       </ScrollArea>
+
+      <Separator my="2" />
+      <Tooltip content="Logout">
+        <IconButton
+          variant="soft"
+          onClick={() => logoutMutation.mutate()}
+          className="mx-auto"
+        >
+          <ExitIcon />
+        </IconButton>
+      </Tooltip>
     </Flex>
   );
 }

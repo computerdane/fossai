@@ -29,11 +29,11 @@ export const createNewChat = async (
   return id;
 };
 
-export const deleteChat = async (headers: Record<string, string>, chatId: string) => {
-  await client.api.chat[":id"].$delete(
-    { param: { id: chatId } },
-    { headers },
-  );
+export const deleteChat = async (
+  headers: Record<string, string>,
+  chatId: string
+) => {
+  await client.api.chat[":id"].$delete({ param: { id: chatId } }, { headers });
 };
 
 export const updateChatTitle = async (
@@ -45,4 +45,20 @@ export const updateChatTitle = async (
     { param: { id: chatId }, json: { title } },
     { headers }
   );
+};
+
+export const logout = async () => {
+  const res = await client.logout.$post();
+  const { success } = await res.json();
+  return success;
+};
+
+export const refresh = async () => {
+  const res = await client.refresh.$post();
+
+  if (!res.ok) {
+    throw new Error("Refresh token failed");
+  }
+
+  return res.json();
 };

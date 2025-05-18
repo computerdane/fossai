@@ -1,0 +1,66 @@
+2025-05-17 20:01:22.295 MDT [100151] LOG:  starting PostgreSQL 17.5 on x86_64-pc-linux-gnu, compiled by clang version 19.1.7, 64-bit
+2025-05-17 20:01:22.296 MDT [100151] LOG:  listening on IPv6 address "::1", port 5432
+2025-05-17 20:01:22.296 MDT [100151] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-05-17 20:01:22.299 MDT [100151] LOG:  listening on Unix socket "/run/postgresql/.s.PGSQL.5432"
+2025-05-17 20:01:22.306 MDT [100154] LOG:  database system was shut down at 2025-05-17 20:00:51 MDT
+2025-05-17 20:01:22.310 MDT [100151] LOG:  database system is ready to accept connections
+2025-05-17 20:01:40.480 MDT [100207] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:01:40.509 MDT [100209] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:01:40.517 MDT [100211] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:01:42.678 MDT [100215] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:01:54.737 MDT [100239] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:02:18.985 MDT [100264] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:02:19.559 MDT [100268] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:02:37.529 MDT [100320] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:02:37.531 MDT [100325] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:02:37.538 MDT [100328] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:02:37.538 MDT [100329] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:02:57.597 MDT [100358] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:02:57.597 MDT [100359] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:05:07.970 MDT [100540] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:05:07.973 MDT [100542] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:05:07.976 MDT [100544] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:05:59.150 MDT [100566] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:05:59.153 MDT [100568] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:05:59.156 MDT [100571] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:06:22.370 MDT [100152] LOG:  checkpoint starting: time
+2025-05-17 20:07:26.550 MDT [100675] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:07:26.550 MDT [100676] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:08:02.295 MDT [100152] LOG:  checkpoint complete: wrote 1001 buffers (6.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=99.885 s, sync=0.026 s, total=99.925 s; sync files=333, longest=0.004 s, average=0.001 s; distance=4635 kB, estimate=4635 kB; lsn=0/1973928, redo lsn=0/1973898
+2025-05-17 20:14:35.087 MDT [101469] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:14:35.087 MDT [101470] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:15:14.613 MDT [101665] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:15:14.962 MDT [101670] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:15:28.274 MDT [101690] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:15:28.275 MDT [101692] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:16:08.096 MDT [101742] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:16:10.376 MDT [101749] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:16:22.464 MDT [100152] LOG:  checkpoint starting: time
+2025-05-17 20:16:24.424 MDT [100152] LOG:  checkpoint complete: wrote 22 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=1.926 s, sync=0.008 s, total=1.960 s; sync files=20, longest=0.004 s, average=0.001 s; distance=18 kB, estimate=4173 kB; lsn=0/197BFE0, redo lsn=0/1978128
+2025-05-17 20:17:49.664 MDT [101874] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:17:49.664 MDT [101876] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:18:02.256 MDT [101903] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:18:02.256 MDT [101905] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:18:56.369 MDT [101962] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:19:36.094 MDT [102008] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:19:36.478 MDT [102010] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:19:58.584 MDT [102047] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:19:58.585 MDT [102049] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:20:33.202 MDT [102085] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:20:33.709 MDT [102087] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:12.113 MDT [102132] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:12.115 MDT [102134] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:12.118 MDT [102136] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:17.997 MDT [102143] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:22.524 MDT [100152] LOG:  checkpoint starting: time
+2025-05-17 20:21:23.470 MDT [100152] LOG:  checkpoint complete: wrote 12 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.912 s, sync=0.007 s, total=0.947 s; sync files=12, longest=0.004 s, average=0.001 s; distance=39 kB, estimate=3759 kB; lsn=0/1981FA8, redo lsn=0/1981F50
+2025-05-17 20:21:24.465 MDT [102152] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:24.467 MDT [102154] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:24.470 MDT [102157] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:28.691 MDT [102165] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:28.694 MDT [102167] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:28.696 MDT [102169] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:33.117 MDT [102176] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:33.119 MDT [102178] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:33.121 MDT [102180] LOG:  could not receive data from client: Connection reset by peer
+2025-05-17 20:21:35.541 MDT [102185] LOG:  could not receive data from client: Connection reset by peer
