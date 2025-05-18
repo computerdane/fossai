@@ -19,16 +19,23 @@ import { Link as RouterLink } from "react-router";
 import ChatButton from "./ChatButton";
 import { useContext } from "react";
 import { accentColors, CustomThemeContext, EnvContext } from "../context";
+import { useState } from "react";
+import Fuse from "fuse.js";
 
 function Sidebar({
   chats,
   chatId,
 }: {
-  chats?: { id: string; title: string }[];
-  chatId?: string;
+  chats: { id: string; title: string }[];
+  chatId: string;
 }) {
   const env = useContext(EnvContext);
   const { theme, setTheme } = useContext(CustomThemeContext);
+
+  const [search, setSearch] = useState("");
+
+  const fuse = new Fuse(chats, { keys: ["title"] });
+  chats = search ? fuse.search(search).map(({ item }) => item) : chats;
 
   return (
     <Flex
@@ -43,6 +50,8 @@ function Sidebar({
           variant="soft"
           radius="full"
           className="grow"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
         >
           <TextField.Slot>
             <MagnifyingGlassIcon />

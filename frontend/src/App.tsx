@@ -160,7 +160,7 @@ function App() {
 
   return (
     <Flex className="h-dvh">
-      <Sidebar chats={chats} chatId={chatId} />
+      <Sidebar chats={chats ?? []} chatId={chatId ?? ""} />
 
       <Flex direction="column" flexGrow="1" p="1" className="bg-(--accent-2)">
         <Flex justify="center">
