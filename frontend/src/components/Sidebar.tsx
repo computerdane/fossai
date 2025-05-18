@@ -1,4 +1,9 @@
-import { MagnifyingGlassIcon, Pencil2Icon } from "@radix-ui/react-icons";
+import {
+  MagnifyingGlassIcon,
+  MoonIcon,
+  Pencil2Icon,
+  SunIcon,
+} from "@radix-ui/react-icons";
 import {
   Flex,
   IconButton,
@@ -9,6 +14,8 @@ import {
 } from "@radix-ui/themes";
 import { Link as RouterLink } from "react-router";
 import ChatButton from "./ChatButton";
+import { useContext } from "react";
+import { CustomThemeContext } from "../context";
 
 function Sidebar({
   chats,
@@ -17,6 +24,8 @@ function Sidebar({
   chats?: { id: string; title: string }[];
   chatId?: string;
 }) {
+  const { theme, setTheme } = useContext(CustomThemeContext);
+
   return (
     <Flex
       direction="column"
@@ -57,6 +66,21 @@ function Sidebar({
           ))}
         </Flex>
       </ScrollArea>
+
+      <Flex>
+        <IconButton
+          variant="ghost"
+          m="2"
+          onClick={() =>
+            setTheme((t) => ({
+              ...t,
+              appearance: t.appearance === "dark" ? "light" : "dark",
+            }))
+          }
+        >
+          {theme.appearance === "dark" ? <MoonIcon /> : <SunIcon />}
+        </IconButton>
+      </Flex>
     </Flex>
   );
 }
