@@ -6,11 +6,7 @@ type SpinnerProps = {
   fullPage?: boolean;
 };
 
-export default function Spinner({
-  size = 12,
-  className,
-  fullPage = true,
-}: SpinnerProps) {
+export default function Spinner({ className, fullPage = true }: SpinnerProps) {
   return (
     <div
       className={clsx(
@@ -19,12 +15,7 @@ export default function Spinner({
         className,
       )}
     >
-      <div
-        className={clsx(
-          `size-${size}`,
-          "animate-spin rounded-full border-4 border-white/20 border-t-white",
-        )}
-      />
+      <div className="animate-spin rounded-full border-4 border-white/20 border-t-white size-12" />
     </div>
   );
 }
