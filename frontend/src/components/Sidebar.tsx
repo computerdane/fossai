@@ -70,7 +70,6 @@ function Sidebar({
         </Flex>
       </ScrollArea>
 
-      <Separator my="2" />
       <Tooltip content="Logout">
         <IconButton
           variant="soft"
