@@ -1,12 +1,15 @@
 import {
+  ColorWheelIcon,
   MagnifyingGlassIcon,
   MoonIcon,
   Pencil2Icon,
   SunIcon,
 } from "@radix-ui/react-icons";
 import {
+  Box,
   Flex,
   IconButton,
+  Popover,
   ScrollArea,
   Separator,
   TextField,
@@ -15,7 +18,7 @@ import {
 import { Link as RouterLink } from "react-router";
 import ChatButton from "./ChatButton";
 import { useContext } from "react";
-import { CustomThemeContext } from "../context";
+import { accentColors, CustomThemeContext } from "../context";
 
 function Sidebar({
   chats,
@@ -67,10 +70,9 @@ function Sidebar({
         </Flex>
       </ScrollArea>
 
-      <Flex>
+      <Flex m="2" gap="4">
         <IconButton
           variant="ghost"
-          m="2"
           onClick={() =>
             setTheme((t) => ({
               ...t,
@@ -80,6 +82,27 @@ function Sidebar({
         >
           {theme.appearance === "dark" ? <MoonIcon /> : <SunIcon />}
         </IconButton>
+        <Popover.Root>
+          <Popover.Trigger>
+            <IconButton variant="ghost">
+              <ColorWheelIcon />
+            </IconButton>
+          </Popover.Trigger>
+          <Popover.Content className="max-w-2xs!">
+            <Box>
+              {accentColors.map((color) => (
+                <IconButton
+                  key={`color-${color}`}
+                  color={color}
+                  className="m-0.5!"
+                  onClick={() =>
+                    setTheme((t) => ({ ...t, accentColor: color }))
+                  }
+                ></IconButton>
+              ))}
+            </Box>
+          </Popover.Content>
+        </Popover.Root>
       </Flex>
     </Flex>
   );

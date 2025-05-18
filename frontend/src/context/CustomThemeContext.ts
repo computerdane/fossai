@@ -1,8 +1,38 @@
-import type { ThemeOwnProps } from "@radix-ui/themes/components/theme.props";
 import { createContext } from "react";
 
+export const accentColors = [
+  "gray",
+  "gold",
+  "bronze",
+  "brown",
+  "yellow",
+  "amber",
+  "orange",
+  "tomato",
+  "red",
+  "ruby",
+  "crimson",
+  "pink",
+  "plum",
+  "purple",
+  "violet",
+  "iris",
+  "indigo",
+  "blue",
+  "cyan",
+  "teal",
+  "jade",
+  "green",
+  "grass",
+  "lime",
+  "mint",
+  "sky",
+] as const;
+
+type AccentColor = (typeof accentColors)[number];
+
 export type CustomTheme = {
-  accentColor: ThemeOwnProps["accentColor"];
+  accentColor: AccentColor;
   appearance: "light" | "dark";
 };
 
