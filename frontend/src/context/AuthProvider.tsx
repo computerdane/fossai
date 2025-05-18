@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ token, headers: { Authorization: `Bearer ${token}` } }}
+      value={{ token: token!, headers: { Authorization: `Bearer ${token!}` } }}
     >
       {children}
     </AuthContext.Provider>

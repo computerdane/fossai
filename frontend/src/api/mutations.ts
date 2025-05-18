@@ -12,8 +12,13 @@ export const createNewMessage = async (
     },
     { headers }
   );
-  const { id } = await res.json();
-  return id;
+  const data = await res.json();
+
+  if ("error" in data) {
+    throw new Error(data.error);
+  }
+
+  return data.id;
 };
 
 export const createNewChat = async (
@@ -24,7 +29,13 @@ export const createNewChat = async (
     { json: { title: "New Chat" } },
     { headers }
   );
-  const { id } = await res.json();
+  const data = await res.json();
+
+  if ("error" in data) {
+    throw new Error(data.error);
+  }
+
+  const { id } = data;
   await createNewMessage(headers, id, content);
   return id;
 };

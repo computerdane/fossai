@@ -294,7 +294,7 @@ const app = new Hono()
       .select(["id", "person_id"])
       .where("token", "=", refreshToken)
       .where("revoked", "=", false)
-      .where("expires_at", ">", new Date().toISOString())
+      .where("expires_at", ">", new Date())
       .executeTakeFirst();
 
     if (!tokenRecord) return error(c, 401);
@@ -313,7 +313,7 @@ const app = new Hono()
       .values({
         person_id: tokenRecord.person_id,
         token: newRefresh,
-        expires_at: newExpires.toISOString(),
+        expires_at: newExpires,
       })
       .execute();
 
