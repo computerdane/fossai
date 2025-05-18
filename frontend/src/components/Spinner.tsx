@@ -1,7 +1,6 @@
 import { clsx } from "clsx";
 
 type SpinnerProps = {
-  size?: number;
   className?: string;
   fullPage?: boolean;
 };
@@ -15,7 +14,7 @@ export default function Spinner({ className, fullPage = true }: SpinnerProps) {
         className,
       )}
     >
-      <div className="animate-spin rounded-full border-4 border-white/20 border-t-white size-12" />
+      <div className="animate-spin rounded-full border-4 border-(--accent-9)/20 border-t-(--accent-9) size-12" />
     </div>
   );
 }

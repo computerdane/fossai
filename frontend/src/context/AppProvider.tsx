@@ -20,7 +20,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     })();
   }, [env.CHAT_MODELS_FILTER_REGEX, openai.models]);
 
-  if (!models) return (<Spinner/>)
+  if (!models) return <Spinner className="bg-(--accent-2)" />;
 
-  return <AppContext.Provider value={{ models }}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={{ models }}>{children}</AppContext.Provider>
+  );
 }
