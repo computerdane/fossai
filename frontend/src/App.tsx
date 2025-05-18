@@ -10,6 +10,7 @@ import { createNewChat, createNewMessage } from "./api/mutations";
 import { getChats, getMe, getMessages } from "./api/queries";
 import { EnvContext, AuthContext, OpenAiContext, AppContext } from "./context";
 import { client } from "./lib/honoClient";
+import { useChatStreaming } from "./hooks/useChatStreaming";
 
 function App() {
   const { chatId } = useParams();
@@ -22,8 +23,6 @@ function App() {
   const openai = useContext(OpenAiContext);
 
   const [model, setModel] = useState(models[0]);
-  const [completion, setCompletion] = useState<string>();
-  const [completionMessageId, setCompletionMessageId] = useState<string>();
 
   const { data: me } = useQuery({
     queryKey: ["me"],
@@ -92,71 +91,23 @@ function App() {
       if (title) {
         await client.api.chat[":id"].$put(
           { param: { id: chatId }, json: { title } },
-          { headers },
+          { headers }
         );
         queryClient.invalidateQueries({ queryKey: ["chats"] });
       }
     }
   }
 
-  async function generateAiMessage(currentMessages: typeof messages) {
-    if (chatId && currentMessages?.at(-1)?.role === "user") {
-      const res = await client.api.chat[":id"].message.$post(
-        {
-          param: { id: chatId },
-          json: { content: "", role: "assistant", model },
-        },
-        { headers },
-      );
-      if (!res.ok) {
-        throw new Error("Failed to create chat");
-      }
-      const { id } = await res.json();
-      await queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
-      setCompletionMessageId(id);
+  const streaming = useChatStreaming({
+    chatId: chatId!,
+    messages: messages ?? [],
+    model,
+    openai,
+    headers,
+    queryClient,
+  });
 
-      if (currentMessages.length === 1) {
-        generateTitle(currentMessages[0].content);
-      }
-
-      let content = "";
-      for await (const chunk of await openai.chat.completions.create({
-        model,
-        messages: currentMessages.map(({ role, content }) => ({
-          role,
-          content,
-        })),
-        stream: true,
-      })) {
-        const delta = chunk.choices.at(0)?.delta.content;
-        if (delta) {
-          content += delta;
-          setCompletion(content);
-        }
-      }
-
-      await client.api.message[":id"].$put(
-        {
-          param: { id },
-          json: { content },
-        },
-        { headers },
-      );
-
-      await queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
-    }
-  }
-
-  useEffect(() => {
-    scrollToBottom();
-    const latestMessage = messages?.at(-1);
-    if (chatId && latestMessage?.role === "user") {
-      generateAiMessage(messages);
-    } else if (latestMessage?.role === "assistant" && latestMessage.content) {
-      setCompletion(undefined);
-      setCompletionMessageId(undefined);
-    }
-  }, [messages, chatId]);
+  useEffect(scrollToBottom, [messages, streaming]);
 
   return (
     <Flex className="h-dvh">
@@ -183,16 +134,15 @@ function App() {
             <ScrollArea ref={scrollAreaRef} className="grow" size="2">
               <Flex justify="center">
                 <Flex direction="column" gap="4" p="4" className="chat-area">
-                  {messages?.map((message) => (
-                    <MessageBubble
-                      key={`message-${message.chat_id}-${message.id}`}
-                      message={
-                        completion && completionMessageId === message.id
-                          ? { ...message, content: completion }
-                          : message
-                      }
-                    />
-                  ))}
+                  {messages?.map((message) => {
+                    const content = streaming[message.id] ?? message.content;
+                    return (
+                      <MessageBubble
+                        key={`message-${message.chat_id}-${message.id}`}
+                        message={{ ...message, content }}
+                      />
+                    );
+                  })}
                 </Flex>
               </Flex>
             </ScrollArea>
@@ -203,6 +153,9 @@ function App() {
                   model={model}
                   onSubmit={(content) => {
                     newMessageMutation.mutate({ chatId, content });
+                    if ((messages?.length ?? 0) === 0) {
+                      generateTitle(content);
+                    }
                   }}
                 />
               </Flex>
