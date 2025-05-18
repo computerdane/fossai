@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { CustomThemeContext, type CustomTheme } from "./CustomThemeContext";
 import { Theme } from "@radix-ui/themes";
 import { EnvContext } from "./EnvContext";
@@ -9,12 +9,18 @@ export function CustomThemeProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { THEME_ACCENT_COLOR, THEME_APPEARANCE } = useContext(EnvContext);
+  const env = useContext(EnvContext);
   const defaultTheme: CustomTheme = {
-    accentColor: THEME_ACCENT_COLOR as any,
-    appearance: THEME_APPEARANCE as any,
+    accentColor: env.THEME_ACCENT_COLOR as any,
+    appearance: env.THEME_APPEARANCE as any,
   };
   const [theme, setTheme] = useLocalStorage("theme", defaultTheme);
+
+  useEffect(() => {
+    if (env.DISABLE_USER_SET_THEME_ACCENT_COLOR) {
+      setTheme((t) => ({ ...t, accentColor: defaultTheme.accentColor }));
+    }
+  }, []);
 
   return (
     <CustomThemeContext.Provider value={{ theme, setTheme }}>

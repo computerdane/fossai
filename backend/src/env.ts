@@ -39,6 +39,8 @@ accurate as possible, without anything made-up or inferred about the message.
 Here is the messsage: `,
     THEME_ACCENT_COLOR: process.env.THEME_ACCENT_COLOR ?? "gray",
     THEME_APPEARANCE: process.env.THEME_APPEARANCE ?? "dark",
+    DISABLE_USER_SET_THEME_ACCENT_COLOR:
+      !!process.env.DISABLE_USER_SET_THEME_ACCENT_COLOR,
   },
 };
 

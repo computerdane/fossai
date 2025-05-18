@@ -18,7 +18,7 @@ import {
 import { Link as RouterLink } from "react-router";
 import ChatButton from "./ChatButton";
 import { useContext } from "react";
-import { accentColors, CustomThemeContext } from "../context";
+import { accentColors, CustomThemeContext, EnvContext } from "../context";
 
 function Sidebar({
   chats,
@@ -27,6 +27,7 @@ function Sidebar({
   chats?: { id: string; title: string }[];
   chatId?: string;
 }) {
+  const env = useContext(EnvContext);
   const { theme, setTheme } = useContext(CustomThemeContext);
 
   return (
@@ -82,27 +83,29 @@ function Sidebar({
         >
           {theme.appearance === "dark" ? <MoonIcon /> : <SunIcon />}
         </IconButton>
-        <Popover.Root>
-          <Popover.Trigger>
-            <IconButton variant="ghost">
-              <ColorWheelIcon />
-            </IconButton>
-          </Popover.Trigger>
-          <Popover.Content className="max-w-2xs!">
-            <Box>
-              {accentColors.map((color) => (
-                <IconButton
-                  key={`color-${color}`}
-                  color={color}
-                  className="m-0.5!"
-                  onClick={() =>
-                    setTheme((t) => ({ ...t, accentColor: color }))
-                  }
-                ></IconButton>
-              ))}
-            </Box>
-          </Popover.Content>
-        </Popover.Root>
+        {!env.DISABLE_USER_SET_THEME_ACCENT_COLOR && (
+          <Popover.Root>
+            <Popover.Trigger>
+              <IconButton variant="ghost">
+                <ColorWheelIcon />
+              </IconButton>
+            </Popover.Trigger>
+            <Popover.Content className="max-w-2xs!">
+              <Box>
+                {accentColors.map((color) => (
+                  <IconButton
+                    key={`color-${color}`}
+                    color={color}
+                    className="m-0.5!"
+                    onClick={() =>
+                      setTheme((t) => ({ ...t, accentColor: color }))
+                    }
+                  ></IconButton>
+                ))}
+              </Box>
+            </Popover.Content>
+          </Popover.Root>
+        )}
       </Flex>
     </Flex>
   );
