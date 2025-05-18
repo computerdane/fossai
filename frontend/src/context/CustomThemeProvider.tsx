@@ -1,7 +1,8 @@
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { CustomThemeContext, type CustomTheme } from "./CustomThemeContext";
 import { Theme } from "@radix-ui/themes";
 import { EnvContext } from "./EnvContext";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 export function CustomThemeProvider({
   children,
@@ -9,11 +10,11 @@ export function CustomThemeProvider({
   children: React.ReactNode;
 }) {
   const { THEME_ACCENT_COLOR, THEME_APPEARANCE } = useContext(EnvContext);
-
-  const [theme, setTheme] = useState<CustomTheme>({
+  const defaultTheme: CustomTheme = {
     accentColor: THEME_ACCENT_COLOR as any,
     appearance: THEME_APPEARANCE as any,
-  });
+  };
+  const [theme, setTheme] = useLocalStorage("theme", defaultTheme);
 
   return (
     <CustomThemeContext.Provider value={{ theme, setTheme }}>
