@@ -37,6 +37,8 @@ assistant. Include one emoji at the start of the title. Here are some examples:
 Ensure the title is a summary of the chat message, and make sure it is as
 accurate as possible, without anything made-up or inferred about the message.
 Here is the messsage: `,
+    THEME_ACCENT_COLOR: process.env.THEME_ACCENT_COLOR ?? "gray",
+    THEME_APPEARANCE: process.env.THEME_APPEARANCE ?? "dark",
   },
 };
 

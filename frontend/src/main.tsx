@@ -22,8 +22,8 @@ const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <CustomThemeProvider>
-      <EnvProvider env={env}>
+    <EnvProvider env={env}>
+      <CustomThemeProvider>
         <AuthProvider>
           <QueryClientProvider client={queryClient}>
             <BrowserRouter>
@@ -45,7 +45,7 @@ createRoot(document.getElementById("root")!).render(
             </BrowserRouter>
           </QueryClientProvider>
         </AuthProvider>
-      </EnvProvider>
-    </CustomThemeProvider>
+      </CustomThemeProvider>
+    </EnvProvider>
   </StrictMode>,
 );
