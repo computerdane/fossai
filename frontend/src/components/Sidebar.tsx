@@ -1,7 +1,15 @@
-import { MagnifyingGlassIcon, Pencil2Icon } from "@radix-ui/react-icons";
 import {
+  ColorWheelIcon,
+  MagnifyingGlassIcon,
+  MoonIcon,
+  Pencil2Icon,
+  SunIcon,
+} from "@radix-ui/react-icons";
+import {
+  Box,
   Flex,
   IconButton,
+  Popover,
   ScrollArea,
   Separator,
   TextField,
@@ -9,6 +17,8 @@ import {
 } from "@radix-ui/themes";
 import { Link as RouterLink } from "react-router";
 import ChatButton from "./ChatButton";
+import { useContext } from "react";
+import { accentColors, CustomThemeContext, EnvContext } from "../context";
 import { useState } from "react";
 import Fuse from "fuse.js";
 
@@ -19,6 +29,9 @@ function Sidebar({
   chats: { id: string; title: string }[];
   chatId: string;
 }) {
+  const env = useContext(EnvContext);
+  const { theme, setTheme } = useContext(CustomThemeContext);
+
   const [search, setSearch] = useState("");
 
   const fuse = new Fuse(chats, { keys: ["title"] });
@@ -66,6 +79,43 @@ function Sidebar({
           ))}
         </Flex>
       </ScrollArea>
+
+      <Flex m="2" gap="4">
+        <IconButton
+          variant="ghost"
+          onClick={() =>
+            setTheme((t) => ({
+              ...t,
+              appearance: t.appearance === "dark" ? "light" : "dark",
+            }))
+          }
+        >
+          {theme.appearance === "dark" ? <MoonIcon /> : <SunIcon />}
+        </IconButton>
+        {!env.DISABLE_USER_SET_THEME_ACCENT_COLOR && (
+          <Popover.Root>
+            <Popover.Trigger>
+              <IconButton variant="ghost">
+                <ColorWheelIcon />
+              </IconButton>
+            </Popover.Trigger>
+            <Popover.Content className="max-w-2xs!">
+              <Box>
+                {accentColors.map((color) => (
+                  <IconButton
+                    key={`color-${color}`}
+                    color={color}
+                    className="m-0.5!"
+                    onClick={() =>
+                      setTheme((t) => ({ ...t, accentColor: color }))
+                    }
+                  ></IconButton>
+                ))}
+              </Box>
+            </Popover.Content>
+          </Popover.Root>
+        )}
+      </Flex>
     </Flex>
   );
 }
