@@ -5,6 +5,7 @@ import {
   Pencil2Icon,
   SunIcon,
   HamburgerMenuIcon,
+  ExitIcon,
 } from "@radix-ui/react-icons";
 import {
   Box,
@@ -22,6 +23,8 @@ import { useContext, useState } from "react";
 import { accentColors, CustomThemeContext, EnvContext } from "../context";
 import Fuse from "fuse.js";
 import clsx from "clsx";
+import { useMutation } from "@tanstack/react-query";
+import { logout } from "../api/mutations";
 
 const collapsedWidthClass = "w-7.5";
 const transitionClass = "transition-all duration-200 ease-in-out";
@@ -37,6 +40,13 @@ function Sidebar({
   const { theme, setTheme } = useContext(CustomThemeContext);
   const [collapsed, setCollapsed] = useState(true);
   const [search, setSearch] = useState("");
+
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSuccess: () => {
+      window.location.reload();
+    },
+  });
 
   const fuse = new Fuse(chats, { keys: ["title"] });
   chats = search ? fuse.search(search).map(({ item }) => item) : chats;
@@ -110,7 +120,7 @@ function Sidebar({
         mx={collapsed ? "0" : "2"}
         my="2"
         gap="3"
-        direction={collapsed ? "column-reverse" : "row"}
+        direction={collapsed ? "column" : "row"}
         className={clsx(transitionClass, collapsed && collapsedWidthClass)}
       >
         <IconButton
@@ -124,6 +134,7 @@ function Sidebar({
         >
           {theme.appearance === "dark" ? <MoonIcon /> : <SunIcon />}
         </IconButton>
+
         {!env.DISABLE_USER_SET_THEME_ACCENT_COLOR && (
           <Popover.Root>
             <Popover.Trigger>
@@ -147,6 +158,12 @@ function Sidebar({
             </Popover.Content>
           </Popover.Root>
         )}
+
+        {!collapsed && <div className="grow" />}
+
+        <IconButton variant="ghost" onClick={() => logoutMutation.mutate()}>
+          <ExitIcon />
+        </IconButton>
       </Flex>
     </Flex>
   );

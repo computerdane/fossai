@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { jwt, sign } from "hono/jwt";
+import { jwt, sign, verify } from "hono/jwt";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { cors } from "hono/cors";
@@ -8,6 +8,22 @@ import getDb from "./db";
 import { createMiddleware } from "hono/factory";
 import { proxy } from "hono/proxy";
 import error from "./error";
+import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
+
+type SessionJwt = {
+  personId: string;
+  exp: number;
+};
+
+type RefreshJwt = {
+  id: string;
+  personId: string;
+  exp: number;
+};
+
+function getExpiry(inSeconds: number) {
+  return Date.now() / 1000 + inSeconds;
+}
 
 const db = await getDb();
 
@@ -39,7 +55,13 @@ const api = new Hono()
             await next();
           }
         : async (c, next) => {
-            c.set("personId", c.get("jwtPayload").id);
+            const { personId, exp } = c.get("jwtPayload") as SessionJwt;
+
+            if (exp < Date.now() / 1000) {
+              return error(c, 401);
+            }
+
+            c.set("personId", personId);
             await next();
           },
     ),
@@ -215,7 +237,7 @@ const api = new Hono()
   );
 
 const app = new Hono()
-  .use(cors())
+  .use(cors({ origin: "http://localhost:5173", credentials: true }))
   .route("/api", api)
   .get("/env", (c) => c.json(env.client))
   .post(
@@ -231,17 +253,115 @@ const app = new Hono()
         .executeTakeFirst();
 
       if (person) {
-        const payload = {
-          id: person.id,
-          exp: Math.floor(Date.now() / 1000) + 60 * 5, // Token expires in 5 minutes
+        const payload: SessionJwt = {
+          personId: person.id,
+          exp: getExpiry(env.server.JWT_SESSION_EXP_SEC),
         };
         const token = await sign(payload, env.server.JWT_SECRET);
-        return c.json({ token }, 201);
+
+        const refreshExpiry = getExpiry(env.server.JWT_REFRESH_EXP_SEC);
+        const record = await db
+          .insertInto("refresh_token")
+          .values({
+            person_id: person.id,
+            expires_at: new Date(refreshExpiry * 1000),
+          })
+          .returningAll()
+          .executeTakeFirst();
+
+        if (record) {
+          const refreshPayload: RefreshJwt = {
+            id: record.id,
+            personId: record.person_id,
+            exp: refreshExpiry,
+          };
+          const refreshToken = await sign(
+            refreshPayload,
+            env.server.JWT_SECRET,
+          );
+
+          await setSignedCookie(
+            c,
+            "fossai_refresh_token",
+            refreshToken,
+            env.server.COOKIE_SECRET,
+            {
+              path: "/",
+              secure: true,
+              httpOnly: true,
+              expires: record.expires_at,
+              sameSite: "strict",
+            },
+          );
+        } else {
+          console.error("Critical Error: Failed to create refresh token!");
+        }
+
+        return c.json({ token }, 200);
       }
 
       return error(c, 401);
     },
   )
+  .post("/refresh", async (c) => {
+    const refreshToken = await getSignedCookie(
+      c,
+      env.server.COOKIE_SECRET,
+      "fossai_refresh_token",
+    );
+
+    if (refreshToken) {
+      const payload = await verify(refreshToken, env.server.JWT_SECRET);
+      const { id, personId, exp } = payload as RefreshJwt;
+      const now = new Date();
+
+      if (exp > now.getTime() / 1000) {
+        const record = await db
+          .selectFrom("refresh_token")
+          .select("id")
+          .where("id", "=", id)
+          .where("person_id", "=", personId)
+          .where("expires_at", ">", now)
+          .executeTakeFirst();
+
+        if (record) {
+          const payload: SessionJwt = {
+            personId,
+            exp: getExpiry(env.server.JWT_SESSION_EXP_SEC),
+          };
+          const token = await sign(payload, env.server.JWT_SECRET);
+
+          return c.json({ token }, 200);
+        }
+      }
+    }
+
+    return error(c, 401);
+  })
+  .post("/logout", async (c) => {
+    const refreshToken = await getSignedCookie(
+      c,
+      env.server.COOKIE_SECRET,
+      "fossai_refresh_token",
+    );
+
+    if (refreshToken) {
+      const payload = await verify(refreshToken, env.server.JWT_SECRET);
+      const { id, personId } = payload as RefreshJwt;
+
+      await db
+        .deleteFrom("refresh_token")
+        .where("id", "=", id)
+        .where("person_id", "=", personId)
+        .execute();
+
+      deleteCookie(c, "fossai_refresh_token");
+
+      return c.body(null, 204);
+    }
+
+    return error(c, 401);
+  })
   .post(
     "/register",
     zValidator("json", z.object({ email: z.string(), first_name: z.string() })),
