@@ -61,13 +61,14 @@ function Sidebar({
       <Flex
         mx={collapsed ? "0" : "2"}
         my="2"
-        gap="3"
+        gap="1"
         direction={collapsed ? "column" : "row"}
         justify="between"
         className={clsx(collapsed && "collapsed")}
+        align="center"
       >
         <IconButton
-          variant="ghost"
+          variant="soft"
           onClick={() => setCollapsed((prev) => !prev)}
         >
           <HamburgerMenuIcon />
@@ -76,7 +77,7 @@ function Sidebar({
         {!collapsed && <Heading size="4">{env.LOGIN_PAGE_TITLE}</Heading>}
 
         <Tooltip content="New chat">
-          <IconButton variant="ghost" asChild>
+          <IconButton variant={chatId ? "soft" : "solid"} asChild>
             <RouterLink to="/">
               <Pencil2Icon />
             </RouterLink>
@@ -84,7 +85,7 @@ function Sidebar({
         </Tooltip>
       </Flex>
 
-      <Flex gap="1" className={clsx(collapsed && "invisible")}>
+      <Box p="1" className={clsx(collapsed && "invisible")}>
         <TextField.Root
           placeholder="Search chats..."
           variant="soft"
@@ -97,7 +98,7 @@ function Sidebar({
             <MagnifyingGlassIcon />
           </TextField.Slot>
         </TextField.Root>
-      </Flex>
+      </Box>
 
       <ScrollArea
         className={clsx("grow px-1", collapsed && "invisible")}
@@ -117,12 +118,13 @@ function Sidebar({
       <Flex
         mx={collapsed ? "0" : "2"}
         my="2"
-        gap="3"
+        gap="1"
         direction={collapsed ? "column" : "row"}
         className={clsx(collapsed && "collapsed")}
+        align="center"
       >
         <IconButton
-          variant="ghost"
+          variant="soft"
           onClick={() =>
             setTheme((t) => ({
               ...t,
@@ -136,11 +138,11 @@ function Sidebar({
         {!env.DISABLE_USER_SET_THEME_ACCENT_COLOR && (
           <Popover.Root>
             <Popover.Trigger>
-              <IconButton variant="ghost">
+              <IconButton variant="soft">
                 <ColorWheelIcon />
               </IconButton>
             </Popover.Trigger>
-            <Popover.Content className="max-w-2xs!">
+            <Popover.Content className="max-w-3xs!">
               <Box>
                 {accentColors.map((color) => (
                   <IconButton
@@ -159,9 +161,11 @@ function Sidebar({
 
         {!collapsed && <div className="grow" />}
 
-        <IconButton variant="ghost" onClick={() => logoutMutation.mutate()}>
-          <ExitIcon />
-        </IconButton>
+        <Tooltip content="Logout">
+          <IconButton variant="soft" onClick={() => logoutMutation.mutate()}>
+            <ExitIcon />
+          </IconButton>
+        </Tooltip>
       </Flex>
     </Flex>
   );

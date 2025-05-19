@@ -11,3 +11,11 @@
   --cursor-slider-thumb-active: grabbing;
   --cursor-switch: pointer;
 }
+
+.rt-IconButton.rt-variant-soft {
+  @apply transition-colors duration-100;
+}
+
+.rt-BaseButton.rt-variant-soft:not(:hover) {
+  background: none;
+}

@@ -1,5 +1,5 @@
 @reference "../index.css";
 
 .collapsed {
-  @apply w-7.5;
+  @apply w-10;
 }
