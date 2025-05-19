@@ -123,23 +123,21 @@ function App() {
           </Flex>
         </Flex>
 
-        <div className="grow">
-          <ScrollArea ref={scrollAreaRef} size="2">
-            <Flex justify="center">
-              <Flex direction="column" gap="4" p="4" className="chat-area">
-                {messages?.map((message) => {
-                  const content = streaming[message.id] ?? message.content;
-                  return (
-                    <MessageBubble
-                      key={`message-${message.chat_id}-${message.id}`}
-                      message={{ ...message, content }}
-                    />
-                  );
-                })}
-              </Flex>
+        <ScrollArea ref={scrollAreaRef} size="2" className="h-auto! grow">
+          <Flex justify="center">
+            <Flex direction="column" gap="4" p="4" className="chat-area">
+              {messages?.map((message) => {
+                const content = streaming[message.id] ?? message.content;
+                return (
+                  <MessageBubble
+                    key={`message-${message.chat_id}-${message.id}`}
+                    message={{ ...message, content }}
+                  />
+                );
+              })}
             </Flex>
-          </ScrollArea>
-        </div>
+          </Flex>
+        </ScrollArea>
 
         <Flex justify="center">
           <Flex
