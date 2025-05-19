@@ -53,9 +53,10 @@ function Sidebar({
   return (
     <Flex
       direction="column"
+      style={{ transition: "width min-width" }}
       className={clsx(
-        "transition-[width] duration-200 ease-in-out",
-        collapsed ? "collapsed" : "w-xs",
+        "duration-200 ease-in-out",
+        collapsed ? "collapsed" : "min-w-xs w-xs",
       )}
       gap="1"
     >
