@@ -237,7 +237,7 @@ const api = new Hono()
   );
 
 const app = new Hono()
-  .use(cors({ origin: "http://localhost:5173", credentials: true }))
+  .use(cors({ origin: env.private.CORS_ORIGIN, credentials: true }))
   .route("/api", api)
   .get("/env", (c) => c.json(env.public))
   .post(

@@ -17,6 +17,7 @@ type Env = {
     OPENAI_API_KEY: string;
     OPENAI_BASE_URL: string;
     EMAIL_VALIDATION_REGEX: RegExp;
+    CORS_ORIGIN: string;
   };
   public: {
     SITE_TITLE: string;
@@ -52,6 +53,7 @@ const env = genEnv((self) => ({
         // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/email#basic_validation
         "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
     ),
+    CORS_ORIGIN: process.env.CORS_ORIGIN ?? "http://localhost:5173",
   },
   public: {
     SITE_TITLE: process.env.SITE_TITLE ?? "fossai - AI Assistant",
