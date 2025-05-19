@@ -20,7 +20,7 @@ import {
 } from "@radix-ui/themes";
 import { Link as RouterLink } from "react-router";
 import ChatButton from "./ChatButton";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { accentColors, CustomThemeContext, EnvContext } from "../context";
 import Fuse from "fuse.js";
 import clsx from "clsx";
@@ -46,6 +46,19 @@ function Sidebar({
       window.location.reload();
     },
   });
+
+  useEffect(() => {
+    function onChange(e: MediaQueryListEvent) {
+      if (!e.matches) {
+        setCollapsed(true);
+      }
+    }
+
+    const match = window.matchMedia("(min-width: 768px)");
+    match.addEventListener("change", onChange);
+
+    return () => match.removeEventListener("change", onChange);
+  }, []);
 
   const fuse = new Fuse(chats, { keys: ["title"] });
   chats = search ? fuse.search(search).map(({ item }) => item) : chats;
