@@ -1,5 +1,5 @@
 import "./App.css";
-import { Box, Flex, Heading, ScrollArea, Select } from "@radix-ui/themes";
+import { Button, Flex, Heading, ScrollArea, Select } from "@radix-ui/themes";
 import { useContext, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import MessageInput from "./components/MessageInput";
@@ -10,6 +10,7 @@ import { createNewChat, createNewMessage } from "./api/mutations";
 import { getChats, getMe, getMessages } from "./api/queries";
 import { AuthContext, OpenAiContext, AppContext } from "./context";
 import { useChatStreaming } from "./hooks/useChatStreaming";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 function App() {
   const { chatId } = useParams();
@@ -20,7 +21,13 @@ function App() {
   const { headers } = useContext(AuthContext);
   const openai = useContext(OpenAiContext);
 
-  const [model, setModel] = useState(models[0]);
+  const [defaultModel, setDefaultModel] = useLocalStorage(
+    "defaultModel",
+    models[0],
+  );
+  const [model, setModel] = useState(
+    models.includes(defaultModel) ? defaultModel : models[0],
+  );
 
   const { data: me } = useQuery({
     queryKey: ["me"],
@@ -87,7 +94,7 @@ function App() {
 
       <Flex direction="column" flexGrow="1" p="1" className="bg-(--accent-2)">
         <Flex justify="center">
-          <Box className="chat-area mb-1">
+          <Flex className="chat-area mb-1" gap="1" align="baseline">
             <Select.Root value={model} onValueChange={setModel}>
               <Select.Trigger variant="soft" />
               <Select.Content position="popper">
@@ -98,7 +105,16 @@ function App() {
                 ))}
               </Select.Content>
             </Select.Root>
-          </Box>
+
+            <Button
+              mx="2"
+              size="1"
+              variant="ghost"
+              onClick={() => setDefaultModel(model)}
+            >
+              Set as default
+            </Button>
+          </Flex>
         </Flex>
 
         {chatId ? (
