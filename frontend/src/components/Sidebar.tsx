@@ -35,7 +35,7 @@ function Sidebar({
 }) {
   const env = useContext(EnvContext);
   const { theme, setTheme } = useContext(CustomThemeContext);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [search, setSearch] = useState("");
 
   const fuse = new Fuse(chats, { keys: ["title"] });
