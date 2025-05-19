@@ -3,7 +3,3 @@
 .collapsed {
   @apply w-7.5;
 }
-
-.collapse-transition {
-  @apply transition-all duration-200 ease-in-out;
-}

@@ -9,5 +9,6 @@
 }
 
 .message-input-transition {
-  @apply transition-all duration-150 ease-in-out;
+  transition: flex-grow padding;
+  @apply duration-150 ease-in-out;
 }

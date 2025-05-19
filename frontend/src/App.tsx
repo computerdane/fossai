@@ -90,15 +90,10 @@ function App() {
   useEffect(scrollToBottom, [messages, streaming]);
 
   return (
-    <Flex className="h-dvh transition-all duration-200">
+    <Flex className="h-dvh">
       <Sidebar chats={chats ?? []} chatId={chatId ?? ""} />
 
-      <Flex
-        direction="column"
-        flexGrow="1"
-        p="1"
-        className="bg-(--accent-2) transition-all duration-200 ease-in-out"
-      >
+      <Flex direction="column" flexGrow="1" p="1" className="bg-(--accent-2)">
         <Flex justify="center">
           <Flex className="chat-area mb-1" gap="1" align="baseline">
             <Select.Root value={model} onValueChange={setModel}>
@@ -166,12 +161,7 @@ function App() {
           </Flex>
         </Flex>
 
-        <div
-          className={clsx(
-            "transition-all message-input-transition",
-            !chatId && "grow",
-          )}
-        />
+        <div className={clsx("message-input-transition", !chatId && "grow")} />
       </Flex>
     </Flex>
   );

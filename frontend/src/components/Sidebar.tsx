@@ -52,7 +52,10 @@ function Sidebar({
   return (
     <Flex
       direction="column"
-      className={clsx("collapse-transition", collapsed ? "collapsed" : "w-xs")}
+      className={clsx(
+        "transition-[width] duration-200 ease-in-out",
+        collapsed ? "collapsed" : "w-xs",
+      )}
       gap="1"
     >
       <Flex
@@ -116,7 +119,7 @@ function Sidebar({
         my="2"
         gap="3"
         direction={collapsed ? "column" : "row"}
-        className={clsx("collapse-transition", collapsed && "collapsed")}
+        className={clsx(collapsed && "collapsed")}
       >
         <IconButton
           variant="ghost"
