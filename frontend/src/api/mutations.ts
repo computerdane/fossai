@@ -10,6 +10,10 @@ export const refresh = async () => {
   return await res.json();
 };
 
+export const logout = async () => {
+  await client.logout.$post();
+};
+
 export const createNewMessage = async (
   headers: Record<string, string>,
   chatId: string,

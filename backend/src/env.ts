@@ -24,6 +24,9 @@ type Env = {
     DISABLE_AUTH: boolean;
     CHAT_MODELS_FILTER_REGEX: string;
     TITLE_GENERATION_PROMPT: string;
+    THEME_ACCENT_COLOR: string;
+    THEME_APPEARANCE: string;
+    DISABLE_USER_SET_THEME_ACCENT_COLOR: boolean;
   };
 };
 

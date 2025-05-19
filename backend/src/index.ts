@@ -8,7 +8,7 @@ import getDb from "./db";
 import { createMiddleware } from "hono/factory";
 import { proxy } from "hono/proxy";
 import error from "./error";
-import { getSignedCookie, setSignedCookie } from "hono/cookie";
+import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 
 type SessionJwt = {
   personId: string;
@@ -342,6 +342,30 @@ const app = new Hono()
           return c.json({ token }, 200);
         }
       }
+    }
+
+    return error(c, 401);
+  })
+  .post("/logout", async (c) => {
+    const refreshToken = await getSignedCookie(
+      c,
+      env.server.COOKIE_SECRET,
+      "fossai_refresh_token",
+    );
+
+    if (refreshToken) {
+      const payload = await verify(refreshToken, env.server.JWT_SECRET);
+      const { id, personId } = payload as RefreshJwt;
+
+      await db
+        .deleteFrom("refresh_token")
+        .where("id", "=", id)
+        .where("person_id", "=", personId)
+        .execute();
+
+      deleteCookie(c, "fossai_refresh_token");
+
+      return c.body(null, 204);
     }
 
     return error(c, 401);
