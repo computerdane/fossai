@@ -7,11 +7,11 @@ import { useNavigate, useParams } from "react-router";
 import MessageBubble from "./components/MessageBubble";
 import Sidebar from "./components/Sidebar";
 import { createNewChat, createNewMessage } from "./api/mutations";
-import { getChats, getMe, getMessages } from "./api/queries";
+import { getChats, getMessages } from "./api/queries";
 import { AuthContext, OpenAiContext, AppContext } from "./context";
 import { useChatStreaming } from "./hooks/useChatStreaming";
-import { useLocalStorage } from "@uidotdev/usehooks";
 import clsx from "clsx";
+import { useMyLocalStorage } from "./hooks/useMyLocalStorage";
 
 function App() {
   const { chatId } = useParams();
@@ -19,21 +19,16 @@ function App() {
   const queryClient = useQueryClient();
 
   const { models } = useContext(AppContext);
-  const { headers } = useContext(AuthContext);
+  const { me, headers } = useContext(AuthContext);
   const openai = useContext(OpenAiContext);
 
-  const [defaultModel, setDefaultModel] = useLocalStorage(
+  const [defaultModel, setDefaultModel] = useMyLocalStorage(
     "defaultModel",
     models[0],
   );
   const [model, setModel] = useState(
     models.includes(defaultModel) ? defaultModel : models[0],
   );
-
-  const { data: me } = useQuery({
-    queryKey: ["me"],
-    queryFn: () => getMe(headers),
-  });
 
   const { data: chats, isSuccess } = useQuery({
     queryKey: ["chats"],
@@ -147,8 +142,8 @@ function App() {
           >
             {!chatId && (
               <Heading size="5" m="2">
-                Hi {me && me.email != "anon" ? me.first_name : "there"}! How can
-                I help you?
+                Hi {me.email != "anon" ? me.first_name : "there"}! How can I
+                help you?
               </Heading>
             )}
             <MessageInput

@@ -1,18 +1,21 @@
 import { useContext, useEffect, useState } from "react";
 import Login from "../Login";
-import { EnvContext, AuthContext } from ".";
+import { EnvContext, AuthContext, type AuthContextType } from ".";
 import { useMutation } from "@tanstack/react-query";
 import { refresh } from "../api/mutations";
-import { Spinner } from "@radix-ui/themes";
+import { getMe } from "../api/queries";
+import Spinner from "../components/Spinner";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const env = useContext(EnvContext);
   const [token, setToken] = useState<string>(null!);
+  const [headers, setHeaders] = useState<Record<string, string>>(null!);
+  const [me, setMe] = useState<AuthContextType["me"]>(null!);
 
   const { mutate: tryRefresh, isPending } = useMutation({
     mutationFn: refresh,
     onSuccess(data) {
-      setToken(data?.token);
+      setToken(data.token);
     },
   });
 
@@ -22,6 +25,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [env.DISABLE_AUTH, tryRefresh]);
 
+  useEffect(() => {
+    if (token) {
+      setHeaders({ Authorization: `Bearer ${token}` });
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (headers) {
+      getMe(headers).then(setMe);
+    }
+  }, [headers]);
+
   if (!env.DISABLE_AUTH && isPending) {
     return <Spinner />;
   }
@@ -30,10 +45,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return <Login setToken={setToken} />;
   }
 
+  if (!me) {
+    return <Spinner />;
+  }
+
   return (
-    <AuthContext.Provider
-      value={{ token, headers: { Authorization: `Bearer ${token}` } }}
-    >
+    <AuthContext.Provider value={{ me, token, headers }}>
       {children}
     </AuthContext.Provider>
   );

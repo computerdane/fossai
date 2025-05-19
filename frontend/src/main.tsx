@@ -13,6 +13,7 @@ import {
   AppProvider,
 } from "./context";
 import { CustomThemeProvider } from "./context/CustomThemeProvider.tsx";
+import { Theme } from "@radix-ui/themes";
 
 // Fetch env eagerly before rendering
 const env = await (await client.env.$get()).json();
@@ -23,29 +24,34 @@ const queryClient = new QueryClient();
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <EnvProvider env={env}>
-      <CustomThemeProvider>
+      <Theme
+        accentColor={env.THEME_ACCENT_COLOR as any}
+        appearance={env.THEME_APPEARANCE as any}
+      >
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <BrowserRouter>
-              <Routes>
-                {["/", "/c/:chatId"].map((path) => (
-                  <Route
-                    key={path}
-                    path={path}
-                    element={
-                      <OpenAiProvider>
-                        <AppProvider>
-                          <App />
-                        </AppProvider>
-                      </OpenAiProvider>
-                    }
-                  />
-                ))}
-              </Routes>
-            </BrowserRouter>
+            <CustomThemeProvider>
+              <BrowserRouter>
+                <Routes>
+                  {["/", "/c/:chatId"].map((path) => (
+                    <Route
+                      key={path}
+                      path={path}
+                      element={
+                        <OpenAiProvider>
+                          <AppProvider>
+                            <App />
+                          </AppProvider>
+                        </OpenAiProvider>
+                      }
+                    />
+                  ))}
+                </Routes>
+              </BrowserRouter>
+            </CustomThemeProvider>
           </AuthProvider>
         </QueryClientProvider>
-      </CustomThemeProvider>
+      </Theme>
     </EnvProvider>
   </StrictMode>,
 );

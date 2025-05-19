@@ -2,7 +2,7 @@ import { useContext, useEffect } from "react";
 import { CustomThemeContext, type CustomTheme } from "./CustomThemeContext";
 import { Theme } from "@radix-ui/themes";
 import { EnvContext } from "./EnvContext";
-import { useLocalStorage } from "@uidotdev/usehooks";
+import { useMyLocalStorage } from "../hooks/useMyLocalStorage";
 
 export function CustomThemeProvider({
   children,
@@ -14,7 +14,7 @@ export function CustomThemeProvider({
     accentColor: env.THEME_ACCENT_COLOR as any,
     appearance: env.THEME_APPEARANCE as any,
   };
-  const [theme, setTheme] = useLocalStorage("theme", defaultTheme);
+  const [theme, setTheme] = useMyLocalStorage("theme", defaultTheme);
 
   useEffect(() => {
     if (env.DISABLE_USER_SET_THEME_ACCENT_COLOR) {
