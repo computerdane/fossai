@@ -21,16 +21,8 @@ type RefreshJwt = {
   exp: number;
 };
 
-function dateToUnix(date: Date) {
-  return Math.floor(date.getTime() / 1000);
-}
-
-function unixToDate(seconds: number) {
-  return new Date(seconds * 1000);
-}
-
 function getExpiry(inSeconds: number) {
-  return dateToUnix(new Date()) + inSeconds;
+  return Date.now() / 1000 + inSeconds;
 }
 
 const db = await getDb();
@@ -65,7 +57,7 @@ const api = new Hono()
         : async (c, next) => {
             const { personId, exp } = c.get("jwtPayload") as SessionJwt;
 
-            if (new Date(exp * 1000) < new Date()) {
+            if (exp < Date.now() / 1000) {
               return error(c, 401);
             }
 
@@ -272,7 +264,7 @@ const app = new Hono()
           .insertInto("refresh_token")
           .values({
             person_id: person.id,
-            expires_at: unixToDate(refreshExpiry),
+            expires_at: new Date(refreshExpiry * 1000),
           })
           .returningAll()
           .executeTakeFirst();
@@ -323,7 +315,7 @@ const app = new Hono()
       const { id, personId, exp } = payload as RefreshJwt;
       const now = new Date();
 
-      if (new Date(exp * 1000) > now) {
+      if (exp > now.getTime() / 1000) {
         const record = await db
           .selectFrom("refresh_token")
           .select("id")
