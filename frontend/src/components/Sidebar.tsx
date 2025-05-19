@@ -9,10 +9,10 @@ import {
 import {
   Box,
   Flex,
+  Heading,
   IconButton,
   Popover,
   ScrollArea,
-  Separator,
   TextField,
   Tooltip,
 } from "@radix-ui/themes";
@@ -21,6 +21,10 @@ import ChatButton from "./ChatButton";
 import { useContext, useState } from "react";
 import { accentColors, CustomThemeContext, EnvContext } from "../context";
 import Fuse from "fuse.js";
+import clsx from "clsx";
+
+const collapsedWidthClass = "w-7.5";
+const transitionClass = "transition-all duration-200 ease-in-out";
 
 function Sidebar({
   chats,
@@ -40,18 +44,19 @@ function Sidebar({
   return (
     <Flex
       direction="column"
-      className={`transition-all duration-300 ease-in-out ${
-        collapsed ? "w-14" : "w-xs"
-      }`}
-      p="1"
+      className={clsx(
+        transitionClass,
+        collapsed ? collapsedWidthClass : "w-xs",
+      )}
       gap="1"
     >
       <Flex
-        mx="2"
+        mx={collapsed ? "0" : "2"}
         my="2"
-        gap="4"
-        justify={collapsed ? "center" : "between"}
-        align="center"
+        gap="3"
+        direction={collapsed ? "column" : "row"}
+        justify="between"
+        className={clsx(collapsed && collapsedWidthClass)}
       >
         <IconButton
           variant="ghost"
@@ -60,90 +65,89 @@ function Sidebar({
           <HamburgerMenuIcon />
         </IconButton>
 
-        {!collapsed && (
-          <Tooltip content="New chat">
-            <IconButton variant="ghost" asChild>
-              <RouterLink to="/">
-                <Pencil2Icon />
-              </RouterLink>
-            </IconButton>
-          </Tooltip>
-        )}
+        {!collapsed && <Heading size="4">{env.LOGIN_PAGE_TITLE}</Heading>}
+
+        <Tooltip content="New chat">
+          <IconButton variant="ghost" asChild>
+            <RouterLink to="/">
+              <Pencil2Icon />
+            </RouterLink>
+          </IconButton>
+        </Tooltip>
       </Flex>
 
-      <div
-        className={`overflow-hidden transition-all duration-300 ${
-          collapsed ? "opacity-0 max-h-0" : "opacity-100 max-h-full"
-        }`}
+      <Flex gap="1" className={clsx(collapsed && "invisible")}>
+        <TextField.Root
+          placeholder="Search chats..."
+          variant="soft"
+          radius="full"
+          className="grow"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        >
+          <TextField.Slot>
+            <MagnifyingGlassIcon />
+          </TextField.Slot>
+        </TextField.Root>
+      </Flex>
+
+      <ScrollArea
+        className={clsx("grow px-1", collapsed && "invisible")}
+        scrollbars="vertical"
       >
-        <Flex gap="1" className="mt-1">
-          <TextField.Root
-            placeholder="Search chats..."
-            variant="soft"
-            radius="full"
-            className="grow"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          >
-            <TextField.Slot>
-              <MagnifyingGlassIcon />
-            </TextField.Slot>
-          </TextField.Root>
+        <Flex direction="column" gap="1">
+          {chats?.map((chat) => (
+            <ChatButton
+              key={`chat-${chat.id}`}
+              chat={chat}
+              selected={chat.id === chatId}
+            />
+          ))}
         </Flex>
+      </ScrollArea>
 
-        <Separator mx="auto" />
-
-        <ScrollArea className="grow px-1" scrollbars="vertical">
-          <Flex direction="column" gap="1">
-            {chats?.map((chat) => (
-              <ChatButton
-                key={`chat-${chat.id}`}
-                chat={chat}
-                selected={chat.id === chatId}
-              />
-            ))}
-          </Flex>
-        </ScrollArea>
-      </div>
-
-      <div className="mt-auto">
-        <Flex mx="2" my="2" gap="4" justify={collapsed ? "center" : "start"}>
-          <IconButton
-            variant="ghost"
-            onClick={() =>
-              setTheme((t) => ({
-                ...t,
-                appearance: t.appearance === "dark" ? "light" : "dark",
-              }))
-            }
-          >
-            {theme.appearance === "dark" ? <MoonIcon /> : <SunIcon />}
-          </IconButton>
-          {!collapsed && !env.DISABLE_USER_SET_THEME_ACCENT_COLOR && (
-            <Popover.Root>
-              <Popover.Trigger>
-                <IconButton variant="ghost">
-                  <ColorWheelIcon />
-                </IconButton>
-              </Popover.Trigger>
-              <Popover.Content className="max-w-2xs!">
-                <Box>
-                  {accentColors.map((color) => (
-                    <IconButton
-                      key={`color-${color}`}
-                      color={color}
-                      className="m-0.5!"
-                      onClick={() =>
-                        setTheme((t) => ({ ...t, accentColor: color }))
-                      }
-                    />
-                  ))}
-                </Box>
-              </Popover.Content>
-            </Popover.Root>
-          )}
-        </Flex>
-      </div>
+      <Flex
+        mx={collapsed ? "0" : "2"}
+        my="2"
+        gap="3"
+        direction={collapsed ? "column-reverse" : "row"}
+        className={clsx(transitionClass, collapsed && collapsedWidthClass)}
+      >
+        <IconButton
+          variant="ghost"
+          onClick={() =>
+            setTheme((t) => ({
+              ...t,
+              appearance: t.appearance === "dark" ? "light" : "dark",
+            }))
+          }
+        >
+          {theme.appearance === "dark" ? <MoonIcon /> : <SunIcon />}
+        </IconButton>
+        {!env.DISABLE_USER_SET_THEME_ACCENT_COLOR && (
+          <Popover.Root>
+            <Popover.Trigger>
+              <IconButton variant="ghost">
+                <ColorWheelIcon />
+              </IconButton>
+            </Popover.Trigger>
+            <Popover.Content className="max-w-2xs!">
+              <Box>
+                {accentColors.map((color) => (
+                  <IconButton
+                    key={`color-${color}`}
+                    color={color}
+                    className="m-0.5!"
+                    onClick={() =>
+                      setTheme((t) => ({ ...t, accentColor: color }))
+                    }
+                  />
+                ))}
+              </Box>
+            </Popover.Content>
+          </Popover.Root>
+        )}
+      </Flex>
     </Flex>
   );
 }
