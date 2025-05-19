@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form } from "radix-ui";
 import { useContext, useRef, useState } from "react";
 import { AuthContext } from "../context";
-import { updateChatTitle } from "../api/mutations";
+import { deleteChat, updateChatTitle } from "../api/mutations";
 
 function EditChatDialog({
   childrenFn,
@@ -26,6 +26,13 @@ function EditChatDialog({
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteChat(headers, chat.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
+    },
+  });
+
   function save() {
     const title = ref.current?.value;
     if (title) {
@@ -34,6 +41,11 @@ function EditChatDialog({
       }
       setOpen(false);
     }
+  }
+
+  function del() {
+    deleteMutation.mutate();
+    setOpen(false);
   }
 
   return (
@@ -60,7 +72,15 @@ function EditChatDialog({
               ></TextField.Root>
             </Form.Control>
           </Form.Field>
-          <Flex gap="3" mt="4" justify="end">
+          <Flex gap="3" mt="4">
+            <Dialog.Close>
+              <Button color="red" onClick={del}>
+                Delete
+              </Button>
+            </Dialog.Close>
+
+            <div className="grow" />
+
             <Dialog.Close>
               <Button variant="soft" color="gray">
                 Cancel

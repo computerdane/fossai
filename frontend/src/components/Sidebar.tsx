@@ -26,6 +26,7 @@ import Fuse from "fuse.js";
 import clsx from "clsx";
 import { useMutation } from "@tanstack/react-query";
 import { logout } from "../api/mutations";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 function Sidebar({
   chats,
@@ -36,7 +37,7 @@ function Sidebar({
 }) {
   const env = useContext(EnvContext);
   const { theme, setTheme } = useContext(CustomThemeContext);
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useLocalStorage("collapsed", true);
   const [search, setSearch] = useState("");
 
   const logoutMutation = useMutation({

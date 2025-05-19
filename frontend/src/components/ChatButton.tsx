@@ -1,11 +1,8 @@
-import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
-import { Button, Flex, IconButton, Link, Tooltip } from "@radix-ui/themes";
+import { Pencil1Icon } from "@radix-ui/react-icons";
+import { Box, Button, IconButton, Link, Tooltip } from "@radix-ui/themes";
 import { Link as RouterLink } from "react-router";
 import EditChatDialog from "./EditChatDialog";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useContext } from "react";
-import { AuthContext } from "../context";
-import { deleteChat } from "../api/mutations";
+import clsx from "clsx";
 
 function ChatButton({
   chat,
@@ -14,22 +11,15 @@ function ChatButton({
   chat: { id: string; title: string };
   selected: boolean;
 }) {
-  const { headers } = useContext(AuthContext);
-
-  const queryClient = useQueryClient();
-  const deleteMutation = useMutation({
-    mutationFn: () => deleteChat(headers, chat.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["chats"] });
-    },
-  });
-
   return (
-    <Flex key={`chat-${chat.id}`} gap="1">
+    <Box key={`chat-${chat.id}`}>
       <Button
         variant={selected ? "solid" : "soft"}
         asChild
-        className="grow! shrink! truncate! inline-block! text-left! pt-1.5!"
+        className={clsx(
+          "grow! shrink! truncate! inline-block! text-left! pt-1.5! w-full!",
+          selected && "pr-8!",
+        )}
       >
         <Link asChild>
           <RouterLink to={`/c/${chat.id}`}>{chat.title}</RouterLink>
@@ -37,30 +27,24 @@ function ChatButton({
       </Button>
 
       {selected && (
-        <>
-          <EditChatDialog
-            chat={chat}
-            childrenFn={(openDialog) => (
-              <Tooltip content="Edit chat">
-                <IconButton size="1" variant="soft" onClick={openDialog}>
-                  <Pencil1Icon />
-                </IconButton>
-              </Tooltip>
-            )}
-          />
-
-          <Tooltip content="Delete chat">
-            <IconButton
-              size="1"
-              variant="soft"
-              onClick={() => deleteMutation.mutate()}
-            >
-              <TrashIcon />
-            </IconButton>
-          </Tooltip>
-        </>
+        <EditChatDialog
+          chat={chat}
+          childrenFn={(openDialog) => (
+            <Tooltip content="Edit">
+              <IconButton
+                size="1"
+                variant="solid"
+                className="z-10! absolute! right-1! text-(--accent-contrast)!"
+                m="1"
+                onClick={openDialog}
+              >
+                <Pencil1Icon />
+              </IconButton>
+            </Tooltip>
+          )}
+        />
       )}
-    </Flex>
+    </Box>
   );
 }
 
