@@ -24,7 +24,9 @@ export function CustomThemeProvider({
 
   return (
     <CustomThemeContext.Provider value={{ theme, setTheme }}>
-      <Theme {...theme}>{children}</Theme>
+      <Theme {...theme} className="transition-colors">
+        {children}
+      </Theme>
     </CustomThemeContext.Provider>
   );
 }

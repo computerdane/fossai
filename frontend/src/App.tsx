@@ -93,7 +93,12 @@ function App() {
     <Flex className="h-dvh">
       <Sidebar chats={chats ?? []} chatId={chatId ?? ""} />
 
-      <Flex direction="column" flexGrow="1" p="1" className="bg-(--accent-2)">
+      <Flex
+        direction="column"
+        flexGrow="1"
+        p="1"
+        className="bg-(--accent-2) transition-[background-color]"
+      >
         <Flex justify="center">
           <Flex className="chat-area mb-1" gap="1" align="baseline">
             <Select.Root value={model} onValueChange={setModel}>
