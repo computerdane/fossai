@@ -11,6 +11,7 @@ import { getChats, getMe, getMessages } from "./api/queries";
 import { AuthContext, OpenAiContext, AppContext } from "./context";
 import { useChatStreaming } from "./hooks/useChatStreaming";
 import { useLocalStorage } from "@uidotdev/usehooks";
+import clsx from "clsx";
 
 function App() {
   const { chatId } = useParams();
@@ -89,10 +90,15 @@ function App() {
   useEffect(scrollToBottom, [messages, streaming]);
 
   return (
-    <Flex className="h-dvh">
+    <Flex className="h-dvh transition-all duration-200">
       <Sidebar chats={chats ?? []} chatId={chatId ?? ""} />
 
-      <Flex direction="column" flexGrow="1" p="1" className="bg-(--accent-2)">
+      <Flex
+        direction="column"
+        flexGrow="1"
+        p="1"
+        className="bg-(--accent-2) transition-all duration-200 ease-in-out"
+      >
         <Flex justify="center">
           <Flex className="chat-area mb-1" gap="1" align="baseline">
             <Select.Root value={model} onValueChange={setModel}>
@@ -117,51 +123,55 @@ function App() {
           </Flex>
         </Flex>
 
-        {chatId ? (
-          <>
-            <ScrollArea ref={scrollAreaRef} className="grow" size="2">
-              <Flex justify="center">
-                <Flex direction="column" gap="4" p="4" className="chat-area">
-                  {messages?.map((message) => {
-                    const content = streaming[message.id] ?? message.content;
-                    return (
-                      <MessageBubble
-                        key={`message-${message.chat_id}-${message.id}`}
-                        message={{ ...message, content }}
-                      />
-                    );
-                  })}
-                </Flex>
-              </Flex>
-            </ScrollArea>
-
+        <div className="grow">
+          <ScrollArea ref={scrollAreaRef} size="2">
             <Flex justify="center">
-              <Flex direction="column" className="chat-area">
-                <MessageInput
-                  model={model}
-                  onSubmit={(content) => {
-                    newMessageMutation.mutate({ chatId, content });
-                  }}
-                />
+              <Flex direction="column" gap="4" p="4" className="chat-area">
+                {messages?.map((message) => {
+                  const content = streaming[message.id] ?? message.content;
+                  return (
+                    <MessageBubble
+                      key={`message-${message.chat_id}-${message.id}`}
+                      message={{ ...message, content }}
+                    />
+                  );
+                })}
               </Flex>
             </Flex>
-          </>
-        ) : (
-          <Flex flexGrow="1" justify="center">
-            <Flex direction="column" className="my-auto chat-area">
+          </ScrollArea>
+        </div>
+
+        <Flex justify="center">
+          <Flex
+            direction="column"
+            className="chat-area message-input-transition"
+            px={chatId ? "0" : "5"}
+          >
+            {!chatId && (
               <Heading size="5" m="2">
                 Hi {me && me.email != "anon" ? me.first_name : "there"}! How can
                 I help you?
               </Heading>
-              <MessageInput
-                model={model}
-                onSubmit={(content) => {
+            )}
+            <MessageInput
+              model={model}
+              onSubmit={(content) => {
+                if (chatId) {
+                  newMessageMutation.mutate({ chatId, content });
+                } else {
                   newChatMutation.mutate(content);
-                }}
-              />
-            </Flex>
+                }
+              }}
+            />
           </Flex>
-        )}
+        </Flex>
+
+        <div
+          className={clsx(
+            "transition-all message-input-transition",
+            !chatId && "grow",
+          )}
+        />
       </Flex>
     </Flex>
   );

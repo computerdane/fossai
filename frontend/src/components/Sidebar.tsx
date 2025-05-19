@@ -1,3 +1,4 @@
+import "./Sidebar.css";
 import {
   ColorWheelIcon,
   MagnifyingGlassIcon,
@@ -26,9 +27,6 @@ import clsx from "clsx";
 import { useMutation } from "@tanstack/react-query";
 import { logout } from "../api/mutations";
 
-const collapsedWidthClass = "w-7.5";
-const transitionClass = "transition-all duration-200 ease-in-out";
-
 function Sidebar({
   chats,
   chatId,
@@ -54,10 +52,7 @@ function Sidebar({
   return (
     <Flex
       direction="column"
-      className={clsx(
-        transitionClass,
-        collapsed ? collapsedWidthClass : "w-xs",
-      )}
+      className={clsx("collapse-transition", collapsed ? "collapsed" : "w-xs")}
       gap="1"
     >
       <Flex
@@ -66,7 +61,7 @@ function Sidebar({
         gap="3"
         direction={collapsed ? "column" : "row"}
         justify="between"
-        className={clsx(collapsed && collapsedWidthClass)}
+        className={clsx(collapsed && "collapsed")}
       >
         <IconButton
           variant="ghost"
@@ -121,7 +116,7 @@ function Sidebar({
         my="2"
         gap="3"
         direction={collapsed ? "column" : "row"}
-        className={clsx(transitionClass, collapsed && collapsedWidthClass)}
+        className={clsx("collapse-transition", collapsed && "collapsed")}
       >
         <IconButton
           variant="ghost"
