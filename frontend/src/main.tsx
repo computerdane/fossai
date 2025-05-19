@@ -24,8 +24,8 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <EnvProvider env={env}>
       <CustomThemeProvider>
-        <AuthProvider>
-          <QueryClientProvider client={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
             <BrowserRouter>
               <Routes>
                 {["/", "/c/:chatId"].map((path) => (
@@ -43,8 +43,8 @@ createRoot(document.getElementById("root")!).render(
                 ))}
               </Routes>
             </BrowserRouter>
-          </QueryClientProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </QueryClientProvider>
       </CustomThemeProvider>
     </EnvProvider>
   </StrictMode>,

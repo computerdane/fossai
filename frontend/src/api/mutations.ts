@@ -1,16 +1,26 @@
 import { client } from "../lib/honoClient";
 
+export const refresh = async () => {
+  const res = await client.refresh.$post();
+
+  if (!res.ok) {
+    throw new Error("Auth using refresh token failed");
+  }
+
+  return await res.json();
+};
+
 export const createNewMessage = async (
   headers: Record<string, string>,
   chatId: string,
-  content: string
+  content: string,
 ) => {
   const res = await client.api.chat[":id"].message.$post(
     {
       param: { id: chatId },
       json: { content, role: "user" },
     },
-    { headers }
+    { headers },
   );
   const { id } = await res.json();
   return id;
@@ -18,31 +28,31 @@ export const createNewMessage = async (
 
 export const createNewChat = async (
   headers: Record<string, string>,
-  content: string
+  content: string,
 ) => {
   const res = await client.api.chat.$post(
     { json: { title: "New Chat" } },
-    { headers }
+    { headers },
   );
   const { id } = await res.json();
   await createNewMessage(headers, id, content);
   return id;
 };
 
-export const deleteChat = async (headers: Record<string, string>, chatId: string) => {
-  await client.api.chat[":id"].$delete(
-    { param: { id: chatId } },
-    { headers },
-  );
+export const deleteChat = async (
+  headers: Record<string, string>,
+  chatId: string,
+) => {
+  await client.api.chat[":id"].$delete({ param: { id: chatId } }, { headers });
 };
 
 export const updateChatTitle = async (
   headers: Record<string, string>,
   chatId: string,
-  title: string
+  title: string,
 ) => {
   await client.api.chat[":id"].$put(
     { param: { id: chatId }, json: { title } },
-    { headers }
+    { headers },
   );
 };

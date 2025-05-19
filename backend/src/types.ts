@@ -37,8 +37,15 @@ export interface Person {
   id: Generated<Int8>;
 }
 
+export interface RefreshToken {
+  expires_at: Generated<Timestamp>;
+  id: Generated<Int8>;
+  person_id: Int8;
+}
+
 export interface DB {
   chat: Chat;
   message: Message;
   person: Person;
+  refresh_token: RefreshToken;
 }

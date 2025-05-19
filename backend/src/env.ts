@@ -1,15 +1,47 @@
 function throwIfUnset(name: string) {
-  console.error(`Error: Environment variable '${name}' must be set.`);
-  process.exit(1);
+  if (!process.env[name]) {
+    console.error(`Error: Environment variable '${name}' must be set.`);
+    process.exit(1);
+  }
 }
 
-const env = {
+throwIfUnset("OPENAI_API_KEY");
+
+type Env = {
+  server: {
+    JWT_SECRET: string;
+    JWT_SESSION_EXP_SEC: number;
+    JWT_REFRESH_EXP_SEC: number;
+    COOKIE_SECRET: string;
+    POSTGRES_CONNECTION_STRING: string;
+    OPENAI_API_KEY: string;
+    EMAIL_VALIDATION_REGEX: RegExp;
+  };
+  client: {
+    SITE_TITLE: string;
+    LOGIN_PAGE_TITLE: string;
+    LOGIN_PAGE_SUBTITLE: string;
+    DISABLE_AUTH: boolean;
+    CHAT_MODELS_FILTER_REGEX: string;
+    TITLE_GENERATION_PROMPT: string;
+  };
+};
+
+/** Allows the environment variable schema to reference itself. */
+function genEnv(f: (self: Env) => Env) {
+  return f(f(null!));
+}
+
+const env = genEnv((self) => ({
   server: {
     JWT_SECRET: process.env.JWT_SECRET ?? "I <3 FOSS!",
+    JWT_SESSION_EXP_SEC: 60 * parseInt(process.env.JWT_SESSION_EXP_MIN ?? "5"),
+    JWT_REFRESH_EXP_SEC:
+      3600 * parseInt(process.env.JWT_REFRESH_EXP_HOUR ?? "168"),
+    COOKIE_SECRET: process.env.COOKIE_SECRET ?? self?.server.JWT_SECRET,
     POSTGRES_CONNECTION_STRING:
       process.env.POSTGRES_CONNECTION_STRING ?? "postgres://localhost",
-    OPENAI_API_KEY:
-      process.env.OPENAI_API_KEY ?? throwIfUnset("OPENAI_API_KEY"),
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY!,
     EMAIL_VALIDATION_REGEX: new RegExp(
       process.env.EMAIL_VALIDATION_REGEX ??
         // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/email#basic_validation
@@ -42,6 +74,6 @@ Here is the messsage: `,
     DISABLE_USER_SET_THEME_ACCENT_COLOR:
       !!process.env.DISABLE_USER_SET_THEME_ACCENT_COLOR,
   },
-};
+}));
 
 export default env;

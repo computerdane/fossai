@@ -26,3 +26,8 @@ create table if not exists message (
     content text not null
 );
 
+create table if not exists refresh_token (
+    id bigint primary key generated always as identity,
+    person_id bigint not null references person(id),
+    expires_at timestamp not null default now()
+);
