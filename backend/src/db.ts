@@ -12,7 +12,7 @@ async function getDb() {
 
   {
     const client = new Client({
-      connectionString: `${env.server.POSTGRES_CONNECTION_STRING}/postgres`,
+      connectionString: `${env.private.POSTGRES_CONNECTION_STRING}/postgres`,
     });
     await client.connect();
 
@@ -30,7 +30,7 @@ async function getDb() {
 
   {
     const client = new Client({
-      connectionString: `${env.server.POSTGRES_CONNECTION_STRING}/fossai`,
+      connectionString: `${env.private.POSTGRES_CONNECTION_STRING}/fossai`,
     });
     await client.connect();
 
@@ -42,7 +42,7 @@ async function getDb() {
 
   const dialect = new PostgresDialect({
     pool: new Pool({
-      connectionString: `${env.server.POSTGRES_CONNECTION_STRING}/fossai`,
+      connectionString: `${env.private.POSTGRES_CONNECTION_STRING}/fossai`,
     }),
   });
 

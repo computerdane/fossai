@@ -38,18 +38,18 @@ if (!anon) {
 
 const openaiHeaders = {
   "Content-Type": "application/json",
-  Authorization: `Bearer ${env.server.OPENAI_API_KEY}`,
+  Authorization: `Bearer ${env.private.OPENAI_API_KEY}`,
 };
 
 const api = new Hono()
   .use(
-    env.client.DISABLE_AUTH
+    env.public.DISABLE_AUTH
       ? async (_, next) => await next()
-      : jwt({ secret: env.server.JWT_SECRET }),
+      : jwt({ secret: env.private.JWT_SECRET }),
   )
   .use(
     createMiddleware<{ Variables: { personId: string } }>(
-      env.client.DISABLE_AUTH
+      env.public.DISABLE_AUTH
         ? async (c, next) => {
             c.set("personId", anon.id);
             await next();
@@ -80,7 +80,7 @@ const api = new Hono()
     return error(c, 500);
   })
   .all("/openai/:path{.+}", async (c) => {
-    return proxy(`https://api.openai.com/v1/${c.req.param("path")}`, {
+    return proxy(`${env.private.OPENAI_BASE_URL}/${c.req.param("path")}`, {
       ...c.req,
       headers: openaiHeaders,
     });
@@ -239,7 +239,7 @@ const api = new Hono()
 const app = new Hono()
   .use(cors({ origin: "http://localhost:5173", credentials: true }))
   .route("/api", api)
-  .get("/env", (c) => c.json(env.client))
+  .get("/env", (c) => c.json(env.public))
   .post(
     "/login",
     zValidator("json", z.object({ email: z.string().nonempty() })),
@@ -255,11 +255,11 @@ const app = new Hono()
       if (person) {
         const payload: SessionJwt = {
           personId: person.id,
-          exp: getExpiry(env.server.JWT_SESSION_EXP_SEC),
+          exp: getExpiry(env.private.JWT_SESSION_EXP_SEC),
         };
-        const token = await sign(payload, env.server.JWT_SECRET);
+        const token = await sign(payload, env.private.JWT_SECRET);
 
-        const refreshExpiry = getExpiry(env.server.JWT_REFRESH_EXP_SEC);
+        const refreshExpiry = getExpiry(env.private.JWT_REFRESH_EXP_SEC);
         const record = await db
           .insertInto("refresh_token")
           .values({
@@ -277,14 +277,14 @@ const app = new Hono()
           };
           const refreshToken = await sign(
             refreshPayload,
-            env.server.JWT_SECRET,
+            env.private.JWT_SECRET,
           );
 
           await setSignedCookie(
             c,
             "fossai_refresh_token",
             refreshToken,
-            env.server.COOKIE_SECRET,
+            env.private.COOKIE_SECRET,
             {
               path: "/",
               secure: true,
@@ -306,12 +306,12 @@ const app = new Hono()
   .post("/refresh", async (c) => {
     const refreshToken = await getSignedCookie(
       c,
-      env.server.COOKIE_SECRET,
+      env.private.COOKIE_SECRET,
       "fossai_refresh_token",
     );
 
     if (refreshToken) {
-      const payload = await verify(refreshToken, env.server.JWT_SECRET);
+      const payload = await verify(refreshToken, env.private.JWT_SECRET);
       const { id, personId, exp } = payload as RefreshJwt;
       const now = new Date();
 
@@ -327,9 +327,9 @@ const app = new Hono()
         if (record) {
           const payload: SessionJwt = {
             personId,
-            exp: getExpiry(env.server.JWT_SESSION_EXP_SEC),
+            exp: getExpiry(env.private.JWT_SESSION_EXP_SEC),
           };
-          const token = await sign(payload, env.server.JWT_SECRET);
+          const token = await sign(payload, env.private.JWT_SECRET);
 
           return c.json({ token }, 200);
         }
@@ -341,12 +341,12 @@ const app = new Hono()
   .post("/logout", async (c) => {
     const refreshToken = await getSignedCookie(
       c,
-      env.server.COOKIE_SECRET,
+      env.private.COOKIE_SECRET,
       "fossai_refresh_token",
     );
 
     if (refreshToken) {
-      const payload = await verify(refreshToken, env.server.JWT_SECRET);
+      const payload = await verify(refreshToken, env.private.JWT_SECRET);
       const { id, personId } = payload as RefreshJwt;
 
       await db
@@ -368,7 +368,7 @@ const app = new Hono()
     async (c) => {
       const input = c.req.valid("json");
 
-      if (env.server.EMAIL_VALIDATION_REGEX.test(input.email)) {
+      if (env.private.EMAIL_VALIDATION_REGEX.test(input.email)) {
         const person = await db
           .insertInto("person")
           .values(input)
@@ -388,6 +388,6 @@ const app = new Hono()
   .get("/", (c) => c.json({ ok: true }));
 
 export type AppType = typeof app;
-export type ClientEnvType = typeof env.client;
+export type ClientEnvType = typeof env.public;
 
 export default app;

@@ -8,16 +8,17 @@ function throwIfUnset(name: string) {
 throwIfUnset("OPENAI_API_KEY");
 
 type Env = {
-  server: {
+  private: {
     JWT_SECRET: string;
     JWT_SESSION_EXP_SEC: number;
     JWT_REFRESH_EXP_SEC: number;
     COOKIE_SECRET: string;
     POSTGRES_CONNECTION_STRING: string;
     OPENAI_API_KEY: string;
+    OPENAI_BASE_URL: string;
     EMAIL_VALIDATION_REGEX: RegExp;
   };
-  client: {
+  public: {
     SITE_TITLE: string;
     LOGIN_PAGE_TITLE: string;
     LOGIN_PAGE_SUBTITLE: string;
@@ -36,22 +37,23 @@ function genEnv(f: (self: Env) => Env) {
 }
 
 const env = genEnv((self) => ({
-  server: {
+  private: {
     JWT_SECRET: process.env.JWT_SECRET ?? "I <3 FOSS!",
     JWT_SESSION_EXP_SEC: 60 * parseInt(process.env.JWT_SESSION_EXP_MIN ?? "5"),
     JWT_REFRESH_EXP_SEC:
       3600 * parseInt(process.env.JWT_REFRESH_EXP_HOUR ?? "168"),
-    COOKIE_SECRET: process.env.COOKIE_SECRET ?? self?.server.JWT_SECRET,
+    COOKIE_SECRET: process.env.COOKIE_SECRET ?? self?.private.JWT_SECRET,
     POSTGRES_CONNECTION_STRING:
       process.env.POSTGRES_CONNECTION_STRING ?? "postgres://localhost",
     OPENAI_API_KEY: process.env.OPENAI_API_KEY!,
+    OPENAI_BASE_URL: process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1",
     EMAIL_VALIDATION_REGEX: new RegExp(
       process.env.EMAIL_VALIDATION_REGEX ??
         // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/email#basic_validation
         "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
     ),
   },
-  client: {
+  public: {
     SITE_TITLE: process.env.SITE_TITLE ?? "fossai - AI Assistant",
     LOGIN_PAGE_TITLE: process.env.LOGIN_PAGE_TITLE ?? "fossai",
     LOGIN_PAGE_SUBTITLE: process.env.LOGIN_PAGE_SUBTITLE ?? "Free AI.",
