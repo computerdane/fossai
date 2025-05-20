@@ -1,70 +1,104 @@
-function throwIfUnset(name: string) {
-  if (!process.env[name]) {
-    console.error(`Error: Environment variable '${name}' must be set.`);
-    process.exit(1);
-  }
-}
-
-throwIfUnset("OPENAI_API_KEY");
-
-type Env = {
-  private: {
-    JWT_SECRET: string;
-    JWT_SESSION_EXP_SEC: number;
-    JWT_REFRESH_EXP_SEC: number;
-    COOKIE_SECRET: string;
-    POSTGRES_CONNECTION_STRING: string;
-    OPENAI_API_KEY: string;
-    OPENAI_BASE_URL: string;
-    EMAIL_VALIDATION_REGEX: RegExp;
-    CORS_ORIGIN: string;
-  };
-  public: {
-    SITE_TITLE: string;
-    LOGIN_PAGE_TITLE: string;
-    LOGIN_PAGE_SUBTITLE: string;
-    DISABLE_AUTH: boolean;
-    CHAT_MODELS_FILTER_REGEX: string;
-    TITLE_GENERATION_PROMPT: string;
-    THEME_ACCENT_COLOR: string;
-    THEME_APPEARANCE: string;
-    DISABLE_USER_SET_THEME_ACCENT_COLOR: boolean;
-  };
+type VarDef<T> = {
+  value: T;
+  parser?: (v: string) => T;
+  required?: boolean;
+  description: string;
 };
 
-/** Allows the environment variable schema to reference itself. */
-function genEnv(f: (self: Env) => Env) {
-  return f(f(null!));
-}
+const boolParser = (v: string) => !!v;
 
-const env = genEnv((self) => ({
-  private: {
-    JWT_SECRET: process.env.JWT_SECRET ?? "I <3 FOSS!",
-    JWT_SESSION_EXP_SEC: 60 * parseInt(process.env.JWT_SESSION_EXP_MIN ?? "5"),
-    JWT_REFRESH_EXP_SEC:
-      3600 * parseInt(process.env.JWT_REFRESH_EXP_HOUR ?? "168"),
-    COOKIE_SECRET: process.env.COOKIE_SECRET ?? self?.private.JWT_SECRET,
-    POSTGRES_CONNECTION_STRING:
-      process.env.POSTGRES_CONNECTION_STRING ?? "postgres://localhost",
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY!,
-    OPENAI_BASE_URL: process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1",
-    EMAIL_VALIDATION_REGEX: new RegExp(
-      process.env.EMAIL_VALIDATION_REGEX ??
-        // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/email#basic_validation
-        "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
-    ),
-    CORS_ORIGIN: process.env.CORS_ORIGIN ?? "http://localhost:5173",
+type PrivateDef = {
+  COOKIE_SECRET: VarDef<string>;
+  JWT_SECRET: VarDef<string>;
+  JWT_SESSION_EXP_SEC: VarDef<number>;
+  JWT_REFRESH_EXP_SEC: VarDef<number>;
+  POSTGRES_CONNECTION_STRING: VarDef<string>;
+  OPENAI_API_KEY: VarDef<string>;
+  OPENAI_BASE_URL: VarDef<string>;
+  EMAIL_VALIDATION_REGEX: VarDef<RegExp>;
+  CORS_ORIGIN: VarDef<string[]>;
+};
+type PublicDef = {
+  SITE_TITLE: VarDef<string>;
+  LOGIN_PAGE_TITLE: VarDef<string>;
+  LOGIN_PAGE_SUBTITLE: VarDef<string>;
+  DISABLE_AUTH: VarDef<boolean>;
+  CHAT_MODELS_FILTER_REGEX: VarDef<string>;
+  TITLE_GENERATION_PROMPT: VarDef<string>;
+  THEME_ACCENT_COLOR: VarDef<string>;
+  THEME_APPEARANCE: VarDef<string>;
+  DISABLE_USER_SET_THEME_ACCENT_COLOR: VarDef<boolean>;
+};
+
+const privateDef: PrivateDef = {
+  COOKIE_SECRET: {
+    value: "I <3 FOSS!",
+    description: "Secret key used to sign cookies",
   },
-  public: {
-    SITE_TITLE: process.env.SITE_TITLE ?? "fossai - AI Assistant",
-    LOGIN_PAGE_TITLE: process.env.LOGIN_PAGE_TITLE ?? "fossai",
-    LOGIN_PAGE_SUBTITLE: process.env.LOGIN_PAGE_SUBTITLE ?? "Free AI.",
-    DISABLE_AUTH: !!process.env.DISABLE_AUTH,
-    CHAT_MODELS_FILTER_REGEX:
-      process.env.CHAT_MODELS_FILTER_REGEX ?? "^(gpt-[3|4].+|o[1|3|4].+)$",
-    TITLE_GENERATION_PROMPT:
-      process.env.TITLE_GENERATION_PROMPT ??
-      `
+  JWT_SECRET: {
+    value: "I <3 FOSS!",
+    description: "Secret key used to sign JWT tokens",
+  },
+  JWT_SESSION_EXP_SEC: {
+    value: 5 * 60,
+    parser: parseInt,
+    description: "JWT session token expiration time (seconds)",
+  },
+  JWT_REFRESH_EXP_SEC: {
+    value: 24 * 60 * 60,
+    parser: parseInt,
+    description: "JWT refresh token expiration time (seconds)",
+  },
+  POSTGRES_CONNECTION_STRING: {
+    value: "postgres://localhost",
+    description: "PostgreSQL connection string WITHOUT the database name",
+  },
+  OPENAI_API_KEY: {
+    value: "",
+    required: true,
+    description: "OpenAI API key",
+  },
+  OPENAI_BASE_URL: {
+    value: "https://api.openai.com/v1",
+    description: "Base URL of OpenAI API endpoint",
+  },
+  EMAIL_VALIDATION_REGEX: {
+    value:
+      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+    parser: (v) => new RegExp(v),
+    description: "Regex used to validate emails",
+  },
+  CORS_ORIGIN: {
+    value: ["http://localhost:5173"],
+    parser: (v) => v.split(" "),
+    description: "Space-separated list of frontend URL(s)",
+  },
+};
+const publicDef: PublicDef = {
+  SITE_TITLE: {
+    value: "fossai - AI Assistant",
+    description: "Title of the site (in the browser tab)",
+  },
+  LOGIN_PAGE_TITLE: {
+    value: "fossai",
+    description: "Content of the main heading on the login page",
+  },
+  LOGIN_PAGE_SUBTITLE: {
+    value: "Free Ai.",
+    description: "Content of the secondary heading on the login page",
+  },
+  DISABLE_AUTH: {
+    value: false,
+    parser: boolParser,
+    description:
+      "[UNSAFE] Completely disables all authentication and runs the app in single-user mode",
+  },
+  CHAT_MODELS_FILTER_REGEX: {
+    value: "^(gpt-[3|4].+|o[1|3|4].+)$",
+    description: "Filter to apply to model list from OpenAI API",
+  },
+  TITLE_GENERATION_PROMPT: {
+    value: `
 You are going to generate a brief chat title for a new chat with an AI
 assistant. Include one emoji at the start of the title. Here are some examples:
 
@@ -76,11 +110,71 @@ assistant. Include one emoji at the start of the title. Here are some examples:
 Ensure the title is a summary of the chat message, and make sure it is as
 accurate as possible, without anything made-up or inferred about the message.
 Here is the messsage: `,
-    THEME_ACCENT_COLOR: process.env.THEME_ACCENT_COLOR ?? "gray",
-    THEME_APPEARANCE: process.env.THEME_APPEARANCE ?? "dark",
-    DISABLE_USER_SET_THEME_ACCENT_COLOR:
-      !!process.env.DISABLE_USER_SET_THEME_ACCENT_COLOR,
+    description:
+      "The prompt used to generate titles when a user makes a new chat",
   },
-}));
+  THEME_ACCENT_COLOR: {
+    value: "gray",
+    description:
+      "Default accent color to use throughout the UI. Choose a color from https://www.radix-ui.com/colors",
+  },
+  THEME_APPEARANCE: {
+    value: "dark",
+    description: "Set default theme to 'dark' or 'light'",
+  },
+  DISABLE_USER_SET_THEME_ACCENT_COLOR: {
+    value: false,
+    description:
+      "Prevent users from choosing their own accent color (sorry, but you are lame if you enable this)",
+  },
+};
+
+type Entries<T> = {
+  [K in keyof T]: [K, T[K]];
+}[keyof T][];
+
+const privateEntries = Object.entries(privateDef) as Entries<PrivateDef>;
+const publicEntries = Object.entries(publicDef) as Entries<PublicDef>;
+
+const env = {
+  private: Object.fromEntries(
+    privateEntries.map(([name, { parser, value, required }]) => {
+      const v = process.env[name];
+      if (required && !v) {
+        console.error(
+          `Error: required environment variable '${name}' is unset!`,
+        );
+        process.exit(1);
+      }
+      return [
+        name,
+        process.env[name]
+          ? parser
+            ? parser(process.env[name])
+            : process.env[name]
+          : value,
+      ];
+    }),
+  ) as { [K in keyof PrivateDef]: PrivateDef[K]["value"] },
+  public: Object.fromEntries(
+    publicEntries.map(([name, { parser, value, required }]) => {
+      const v = process.env[name];
+      if (required && !v) {
+        console.error(
+          `Error: required environment variable '${name}' is unset!`,
+        );
+        process.exit(1);
+      }
+      return [
+        name,
+        process.env[name]
+          ? parser
+            ? parser(process.env[name])
+            : process.env[name]
+          : value,
+      ];
+    }),
+  ) as { [K in keyof PublicDef]: PublicDef[K]["value"] },
+};
 
 export default env;
