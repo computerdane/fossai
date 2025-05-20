@@ -74,17 +74,18 @@ in
         VITE_BACKEND_BASE_URL = cfg.backendBaseUrl;
         POSTGRES_CONNECTION_STRING = "postgres:///fossai?host=/run/postgresql";
       };
-      preStart = ''
-        cd "${cfg.rootDir}"
-        cp -rf ${src}/* .
-        chmod -R ug+rw ./*
-        bun i
-        cd frontend
-        bun run build
-      '';
       script = ''
         cd "${cfg.rootDir}"
-        cd backend
+        rm -rf ./*
+        cp -rf ${src}/* .
+        chmod -R ug+rw ./*
+
+        bun i
+
+        cd frontend
+        bun run build
+
+        cd ../backend
         bun src/index.ts
       '';
     };
