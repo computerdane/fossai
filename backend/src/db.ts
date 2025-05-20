@@ -1,5 +1,5 @@
 import { Client, Pool } from "pg";
-import env from "./env";
+import env from "@fossai/env";
 import { Kysely, PostgresDialect } from "kysely";
 import type { DB } from "./types";
 

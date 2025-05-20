@@ -3,7 +3,7 @@ import { jwt, sign, verify } from "hono/jwt";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { cors } from "hono/cors";
-import env from "./env";
+import env from "@fossai/env";
 import getDb from "./db";
 import { createMiddleware } from "hono/factory";
 import { proxy } from "hono/proxy";
@@ -368,7 +368,7 @@ const app = new Hono()
     async (c) => {
       const input = c.req.valid("json");
 
-      if (env.private.EMAIL_VALIDATION_REGEX.test(input.email)) {
+      if (new RegExp(env.private.EMAIL_VALIDATION_REGEX).test(input.email)) {
         const person = await db
           .insertInto("person")
           .values(input)
@@ -388,6 +388,8 @@ const app = new Hono()
   .get("/", (c) => c.json({ ok: true }));
 
 export type AppType = typeof app;
-export type ClientEnvType = typeof env.public;
 
-export default app;
+export default {
+  port: env.private.PORT,
+  fetch: app.fetch,
+};

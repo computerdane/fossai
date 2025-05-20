@@ -1,21 +1,22 @@
 type VarDef<T> = {
   value: T;
   parser?: (v: string) => T;
-  required?: boolean;
   description: string;
 };
 
 const boolParser = (v: string) => !!v;
 
 type PrivateDef = {
+  PORT: VarDef<number>;
   COOKIE_SECRET: VarDef<string>;
   JWT_SECRET: VarDef<string>;
   JWT_SESSION_EXP_SEC: VarDef<number>;
   JWT_REFRESH_EXP_SEC: VarDef<number>;
   POSTGRES_CONNECTION_STRING: VarDef<string>;
   OPENAI_API_KEY: VarDef<string>;
+  OPENAI_API_KEY_FILE: VarDef<string>;
   OPENAI_BASE_URL: VarDef<string>;
-  EMAIL_VALIDATION_REGEX: VarDef<RegExp>;
+  EMAIL_VALIDATION_REGEX: VarDef<string>;
   CORS_ORIGIN: VarDef<string[]>;
 };
 type PublicDef = {
@@ -30,7 +31,12 @@ type PublicDef = {
   DISABLE_USER_SET_THEME_ACCENT_COLOR: VarDef<boolean>;
 };
 
-const privateDef: PrivateDef = {
+export const privateDef: PrivateDef = {
+  PORT: {
+    value: 3000,
+    parser: parseInt,
+    description: "Port to serve the backend on",
+  },
   COOKIE_SECRET: {
     value: "I <3 FOSS!",
     description: "Secret key used to sign cookies",
@@ -55,8 +61,11 @@ const privateDef: PrivateDef = {
   },
   OPENAI_API_KEY: {
     value: "",
-    required: true,
     description: "OpenAI API key",
+  },
+  OPENAI_API_KEY_FILE: {
+    value: "",
+    description: "Path to file containing OpenAI API key",
   },
   OPENAI_BASE_URL: {
     value: "https://api.openai.com/v1",
@@ -65,8 +74,7 @@ const privateDef: PrivateDef = {
   EMAIL_VALIDATION_REGEX: {
     // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/email#basic_validation
     value:
-      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
-    parser: (v) => new RegExp(v),
+      "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/",
     description: "Regex used to validate emails",
   },
   CORS_ORIGIN: {
@@ -75,7 +83,7 @@ const privateDef: PrivateDef = {
     description: "Space-separated list of frontend URL(s)",
   },
 };
-const publicDef: PublicDef = {
+export const publicDef: PublicDef = {
   SITE_TITLE: {
     value: "fossai - AI Assistant",
     description: "Title of the site (in the browser tab)",
@@ -139,43 +147,34 @@ const publicEntries = Object.entries(publicDef) as Entries<PublicDef>;
 
 const env = {
   private: Object.fromEntries(
-    privateEntries.map(([name, { parser, value, required }]) => {
+    privateEntries.map(([name, { parser, value }]) => {
       const v = process.env[name];
-      if (required && !v) {
-        console.error(
-          `Error: required environment variable '${name}' is unset!`,
-        );
-        process.exit(1);
-      }
-      return [
-        name,
-        process.env[name]
-          ? parser
-            ? parser(process.env[name])
-            : process.env[name]
-          : value,
-      ];
+      return [name, v ? (parser ? parser(v) : v) : value];
     }),
   ) as { [K in keyof PrivateDef]: PrivateDef[K]["value"] },
   public: Object.fromEntries(
-    publicEntries.map(([name, { parser, value, required }]) => {
+    publicEntries.map(([name, { parser, value }]) => {
       const v = process.env[name];
-      if (required && !v) {
-        console.error(
-          `Error: required environment variable '${name}' is unset!`,
-        );
-        process.exit(1);
-      }
-      return [
-        name,
-        process.env[name]
-          ? parser
-            ? parser(process.env[name])
-            : process.env[name]
-          : value,
-      ];
+      return [name, v ? (parser ? parser(v) : v) : value];
     }),
   ) as { [K in keyof PublicDef]: PublicDef[K]["value"] },
 };
+
+export type PublicEnv = typeof env.public;
+
+if (!env.private.OPENAI_API_KEY) {
+  try {
+    if (!env.private.OPENAI_API_KEY_FILE) {
+      throw new Error(
+        "One of OPENAI_API_KEY or OPENAI_API_KEY_FILE must be set!",
+      );
+    }
+    const key = await Bun.file(env.private.OPENAI_API_KEY_FILE).text();
+    env.private.OPENAI_API_KEY = key;
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
+}
 
 export default env;
