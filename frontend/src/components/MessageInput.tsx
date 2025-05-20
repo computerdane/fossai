@@ -1,35 +1,61 @@
-import { TextArea } from "@radix-ui/themes";
-import { useRef } from "react";
+import * as React from "react";
+import MessageInputToolbar from "./MessageInputToolbar";
 
-function MessageInput({
+export default function MessageInput({
   model,
   onSubmit,
 }: {
   model: string;
   onSubmit: (content: string) => void;
 }) {
-  const ref = useRef<HTMLTextAreaElement>(null!);
+  const ref = React.useRef<HTMLTextAreaElement>(null!);
+  const [input, setInput] = React.useState("");
+
+  React.useEffect(() => {
+    if (ref.current) {
+      const maxHeight = 200;
+      ref.current.style.height = "auto";
+      const nextHeight = Math.min(ref.current.scrollHeight, maxHeight);
+      ref.current.style.height = `${nextHeight}px`;
+      ref.current.style.overflowY =
+        ref.current.scrollHeight > maxHeight ? "auto" : "hidden";
+    }
+  }, [input]);
+
+  const handleSubmit = () => {
+    const content = input.trim();
+    if (content) {
+      onSubmit(content);
+      setInput("");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (
+      e.key === "Enter" &&
+      !e.shiftKey &&
+      !(e.ctrlKey && input.includes("\n"))
+    ) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
 
   return (
-    <TextArea
-      autoFocus
-      ref={ref}
-      size="3"
-      radius="large"
-      placeholder={`Write a message to ${model}`}
-      className="chat-area"
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          if (e.shiftKey) return;
-          const content = ref.current.value.trim();
-          if (!e.ctrlKey && content.includes("\n")) return;
-          e.preventDefault();
-          onSubmit(content);
-          ref.current.value = "";
-        }
-      }}
-    />
+    <div className="w-full rounded-xl border border-[var(--accent-6)] bg-[var(--accent-1)] px-4 pt-3 pb-1">
+      <textarea
+        ref={ref}
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={`Write a message to ${model}`}
+        rows={1}
+        className="w-full resize-none border-none bg-transparent p-0 text-[15px] leading-relaxed text-[var(--accent-12)] shadow-none outline-none"
+      />
+      <MessageInputToolbar
+        onSend={handleSubmit}
+        canSend={input.trim() !== ""}
+      />
+    </div>
   );
 }
-
-export default MessageInput;
