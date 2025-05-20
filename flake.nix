@@ -15,6 +15,7 @@
         "aarch64-darwin"
         "x86_64-darwin"
       ];
+      flake.nixosModules.fossai = import ./nix/module.nix;
       perSystem =
         { pkgs, ... }:
         {

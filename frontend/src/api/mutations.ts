@@ -26,6 +26,11 @@ export const createNewMessage = async (
     },
     { headers },
   );
+
+  if (!res.ok) {
+    throw new Error("Failed to create new message");
+  }
+
   const { id } = await res.json();
   return id;
 };
@@ -38,6 +43,11 @@ export const createNewChat = async (
     { json: { title: "New Chat" } },
     { headers },
   );
+
+  if (!res.ok) {
+    throw new Error("Failed to create new chat");
+  }
+
   const { id } = await res.json();
   await createNewMessage(headers, id, content);
   return id;

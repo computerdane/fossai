@@ -25,6 +25,7 @@ Start postgres database:
 ```sh
   pg_ctl -D /tmp/fossai init
   pg_ctl -D /tmp/fossai start
+  createdb fossai
 ```
 
 Start live backend dev server:

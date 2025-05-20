@@ -1,0 +1,7 @@
+{
+  "name": "@fossai/env",
+  "main": "env.ts",
+  "scripts": {
+    "codegen": "bun run codegen.ts"
+  }
+}

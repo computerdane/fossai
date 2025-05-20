@@ -1,4 +1,4 @@
-import type { ClientEnvType } from "@fossai/backend";
+import type { PublicEnv } from "@fossai/env";
 import { createContext } from "react";
 
-export const EnvContext = createContext<ClientEnvType>(null!);
+export const EnvContext = createContext<PublicEnv>(null!);
