@@ -23,6 +23,7 @@ in
 {
   options.services.fossai = {
     enable = lib.mkEnableOption "fossai, an actually free and open source AI chat web UI";
+    withPostgres = lib.mkEnableOption "automatic postgres configuration";
     rootDir = lib.mkOption {
       type = lib.types.path;
       default = "/var/lib/fossai";
@@ -39,7 +40,7 @@ in
 
   config = lib.mkIf cfg.enable {
 
-    services.postgresql = {
+    services.postgresql = lib.mkIf cfg.withPostgres {
       enable = true;
       ensureDatabases = [ "fossai" ];
       ensureUsers = [
@@ -68,11 +69,12 @@ in
         Group = "fossai";
       };
       wantedBy = [ "multi-user.target" ];
-      requires = [ "postgresql.service" ];
+      requires = lib.mkIf cfg.withPostgres [ "postgresql.service" ];
       path = [ pkgs.bun ];
       environment = cfg.settings // {
         VITE_BACKEND_BASE_URL = cfg.backendBaseUrl;
-        POSTGRES_CONNECTION_STRING = "postgres:///fossai?host=/run/postgresql";
+        POSTGRES_CONNECTION_STRING =
+          if cfg.withPostgres then "postgres:///fossai?host=/run/postgresql" else null;
       };
       script = ''
         cd "${cfg.rootDir}"
