@@ -89,11 +89,11 @@ in
       '';
     };
 
-    services.static-web-server = {
+    services.static-web-server = rec {
       enable = true;
       listen = "[::]:${toString cfg.frontendPort}";
       root = "${cfg.rootDir}/frontend/dist";
-      configuration.general.page-fallback = "index.html";
+      configuration.general.page-fallback = "${root}/index.html";
     };
     systemd.services.static-web-server.requires = [ "fossai.service" ];
     systemd.services.static-web-server.after = [ "fossai.service" ];
