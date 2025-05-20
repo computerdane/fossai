@@ -94,6 +94,7 @@ in
       enable = true;
       listen = "[::]:${toString cfg.frontendPort}";
       root = "${cfg.rootDir}/frontend/dist";
+      configuration.general.page-fallback = "index.html";
     };
     systemd.services.static-web-server.requires = [ "fossai.service" ];
 
