@@ -76,7 +76,6 @@ in
       };
       script = ''
         cd "${cfg.rootDir}"
-        rm -rf ./*
         cp -rf ${src}/* .
         chmod -R ug+rw ./*
 
@@ -97,6 +96,7 @@ in
       configuration.general.page-fallback = "index.html";
     };
     systemd.services.static-web-server.requires = [ "fossai.service" ];
+    systemd.services.static-web-server.after = [ "fossai.service" ];
 
   };
 }
