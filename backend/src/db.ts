@@ -12,11 +12,6 @@ async function getDb() {
 
   const config: ClientConfig = {
     connectionString: env.private.POSTGRES_CONNECTION_STRING,
-    host: env.private.POSTGRES_HOST,
-    user: env.private.POSTGRES_USER,
-    password: env.private.POSTGRES_PASSWORD,
-    database: env.private.POSTGRES_DATABASE,
-    port: env.private.POSTGRES_PORT,
   };
 
   const client = new Client(config);

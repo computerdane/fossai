@@ -13,11 +13,6 @@ type PrivateDef = {
   JWT_SESSION_EXP_SEC: VarDef<number>;
   JWT_REFRESH_EXP_SEC: VarDef<number>;
   POSTGRES_CONNECTION_STRING: VarDef<string | undefined>;
-  POSTGRES_HOST: VarDef<string | undefined>;
-  POSTGRES_USER: VarDef<string | undefined>;
-  POSTGRES_PASSWORD: VarDef<string | undefined>;
-  POSTGRES_DATABASE: VarDef<string | undefined>;
-  POSTGRES_PORT: VarDef<number | undefined>;
   OPENAI_API_KEY: VarDef<string>;
   OPENAI_API_KEY_FILE: VarDef<string>;
   OPENAI_BASE_URL: VarDef<string>;
@@ -64,26 +59,6 @@ export const privateDef: PrivateDef = {
     value: "postgres:///fossai",
     description: "PostgreSQL connection string WITH the database name",
   },
-  POSTGRES_HOST: {
-    value: undefined,
-    description: "PostgreSQL host",
-  },
-  POSTGRES_USER: {
-    value: undefined,
-    description: "PostgreSQL username",
-  },
-  POSTGRES_PASSWORD: {
-    value: undefined,
-    description: "PostgreSQL password",
-  },
-  POSTGRES_DATABASE: {
-    value: undefined,
-    description: "PostgreSQL database name",
-  },
-  POSTGRES_PORT: {
-    value: undefined,
-    description: "PostgreSQL port",
-  },
   OPENAI_API_KEY: {
     value: "",
     description: "OpenAI API key",
@@ -99,7 +74,7 @@ export const privateDef: PrivateDef = {
   EMAIL_VALIDATION_REGEX: {
     // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/email#basic_validation
     value:
-      "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/",
+      "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
     description: "Regex used to validate emails",
   },
   CORS_ORIGIN: {

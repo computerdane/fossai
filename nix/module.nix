@@ -72,6 +72,7 @@ in
       path = [ pkgs.bun ];
       environment = cfg.settings // {
         VITE_BACKEND_BASE_URL = cfg.backendBaseUrl;
+        POSTGRES_CONNECTION_STRING = "postgres:///fossai?host=/run/postgresql";
       };
       preStart = ''
         cd "${cfg.rootDir}"
