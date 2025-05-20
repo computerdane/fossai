@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useEffect, useRef, useState } from "react";
 import MessageInputToolbar from "./MessageInputToolbar";
 
 export default function MessageInput({
@@ -8,10 +8,10 @@ export default function MessageInput({
   model: string;
   onSubmit: (content: string) => void;
 }) {
-  const ref = React.useRef<HTMLTextAreaElement>(null!);
-  const [input, setInput] = React.useState("");
+  const ref = useRef<HTMLTextAreaElement>(null!);
+  const [input, setInput] = useState("");
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (ref.current) {
       const maxHeight = 200;
       ref.current.style.height = "auto";
