@@ -1,4 +1,5 @@
-import { ArrowUpIcon, UploadIcon } from "@radix-ui/react-icons";
+import { PaperPlaneIcon, UploadIcon } from "@radix-ui/react-icons";
+import { IconButton, Tooltip } from "@radix-ui/themes";
 import { Toolbar } from "radix-ui";
 
 export default function MessageInputToolbar({
@@ -9,35 +10,21 @@ export default function MessageInputToolbar({
   canSend: boolean;
 }) {
   return (
-    <Toolbar.Root
-      className="mt-2 flex w-full items-center justify-between border-t border-[var(--accent-6)] pt-2"
-      aria-label="Message input actions"
-    >
-      <Toolbar.Button
-        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--accent-11)] hover:bg-[var(--accent-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-7)]"
-        aria-label="Upload file"
-      >
-        <UploadIcon />
+    <Toolbar.Root className="flex bg-(--accent-3) rounded-b-(--radius-3) p-0.5">
+      <Toolbar.Button asChild>
+        <Tooltip content="Upload file">
+          <IconButton variant="soft">
+            <UploadIcon />
+          </IconButton>
+        </Tooltip>
       </Toolbar.Button>
 
-      <input
-        type="file"
-        hidden
-        onChange={(e) => {
-          console.log(
-            "not yet implemented, please be excellent to eachother",
-            e
-          );
-        }}
-      />
+      <div className="grow" />
 
-      <Toolbar.Button
-        onClick={onSend}
-        disabled={!canSend}
-        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--accent-11)] hover:bg-[var(--accent-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-7)] disabled:opacity-40"
-        aria-label="Send message"
-      >
-        <ArrowUpIcon />
+      <Toolbar.Button asChild>
+        <IconButton variant="soft" onClick={onSend} disabled={!canSend}>
+          <PaperPlaneIcon />
+        </IconButton>
       </Toolbar.Button>
     </Toolbar.Root>
   );

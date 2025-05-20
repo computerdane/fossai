@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import MessageInputToolbar from "./MessageInputToolbar";
+import { Flex } from "@radix-ui/themes";
 
 export default function MessageInput({
   model,
@@ -42,20 +43,23 @@ export default function MessageInput({
   };
 
   return (
-    <div className="w-full rounded-xl border border-[var(--accent-6)] bg-[var(--accent-1)] px-4 pt-3 pb-1">
+    <Flex
+      direction="column"
+      className="rt-TextAreaRoot rt-r-size-3 rt-variant-surface z-10"
+      data-radius="large"
+    >
       <textarea
+        autoFocus
         ref={ref}
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={`Write a message to ${model}`}
         rows={1}
-        className="w-full resize-none border-none bg-transparent p-0 text-[15px] leading-relaxed text-[var(--accent-12)] shadow-none outline-none"
+        className="resize-none shadow-none outline-none my-2 mx-3"
       />
-      <MessageInputToolbar
-        onSend={handleSubmit}
-        canSend={input.trim() !== ""}
-      />
-    </div>
+      <div className="grow" />
+      <MessageInputToolbar onSend={handleSubmit} canSend={!!input.trim()} />
+    </Flex>
   );
 }
