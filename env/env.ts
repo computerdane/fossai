@@ -12,7 +12,7 @@ type PrivateDef = {
   JWT_SECRET: VarDef<string>;
   JWT_SESSION_EXP_SEC: VarDef<number>;
   JWT_REFRESH_EXP_SEC: VarDef<number>;
-  POSTGRES_CONNECTION_STRING: VarDef<string | undefined>;
+  POSTGRES_CONNECTION_STRING: VarDef<string>;
   OPENAI_API_KEY: VarDef<string>;
   OPENAI_API_KEY_FILE: VarDef<string>;
   OPENAI_BASE_URL: VarDef<string>;
