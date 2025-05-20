@@ -63,16 +63,20 @@ in
     };
 
     systemd.services.fossai = {
+      serviceConfig = {
+        User = "fossai";
+        Group = "fossai";
+      };
       wantedBy = [ "multi-user.target" ];
       requires = [ "postgresql.service" ];
       path = [ pkgs.bun ];
       environment = cfg.settings // {
         VITE_BACKEND_BASE_URL = cfg.backendBaseUrl;
-        POSTGRES_CONNECTION_STRING = "postgres:///fossai";
       };
       preStart = ''
         cd "${cfg.rootDir}"
-        cp -r ${src}/* .
+        cp -rf ${src}/* .
+        chmod -R ug+rw ./*
         bun i
         cd frontend
         bun run build

@@ -6,10 +6,14 @@ in
 
 builtins.mapAttrs (
   name:
-  { description, value, ... }:
+  {
+    description,
+    value ? null,
+    ...
+  }:
   lib.mkOption {
     inherit description;
-    type = lib.types.str;
-    default = toString value;
+    type = lib.types.nullOr lib.types.str;
+    default = if value == null then null else toString value;
   }
 ) env

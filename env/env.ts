@@ -12,7 +12,12 @@ type PrivateDef = {
   JWT_SECRET: VarDef<string>;
   JWT_SESSION_EXP_SEC: VarDef<number>;
   JWT_REFRESH_EXP_SEC: VarDef<number>;
-  POSTGRES_CONNECTION_STRING: VarDef<string>;
+  POSTGRES_CONNECTION_STRING: VarDef<string | undefined>;
+  POSTGRES_HOST: VarDef<string | undefined>;
+  POSTGRES_USER: VarDef<string | undefined>;
+  POSTGRES_PASSWORD: VarDef<string | undefined>;
+  POSTGRES_DATABASE: VarDef<string | undefined>;
+  POSTGRES_PORT: VarDef<number | undefined>;
   OPENAI_API_KEY: VarDef<string>;
   OPENAI_API_KEY_FILE: VarDef<string>;
   OPENAI_BASE_URL: VarDef<string>;
@@ -56,8 +61,28 @@ export const privateDef: PrivateDef = {
     description: "JWT refresh token expiration time (seconds)",
   },
   POSTGRES_CONNECTION_STRING: {
-    value: "postgres://localhost/fossai",
+    value: "postgres:///fossai",
     description: "PostgreSQL connection string WITH the database name",
+  },
+  POSTGRES_HOST: {
+    value: undefined,
+    description: "PostgreSQL host",
+  },
+  POSTGRES_USER: {
+    value: undefined,
+    description: "PostgreSQL username",
+  },
+  POSTGRES_PASSWORD: {
+    value: undefined,
+    description: "PostgreSQL password",
+  },
+  POSTGRES_DATABASE: {
+    value: undefined,
+    description: "PostgreSQL database name",
+  },
+  POSTGRES_PORT: {
+    value: undefined,
+    description: "PostgreSQL port",
   },
   OPENAI_API_KEY: {
     value: "",

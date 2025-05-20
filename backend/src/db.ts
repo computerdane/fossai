@@ -1,4 +1,4 @@
-import { Client, Pool } from "pg";
+import { Client, Pool, type ClientConfig } from "pg";
 import env from "@fossai/env";
 import { Kysely, PostgresDialect } from "kysely";
 import type { DB } from "./types";
@@ -10,18 +10,23 @@ async function getDb() {
 
   const initSql = await Bun.file(`${import.meta.dir}/init.sql`).text();
 
-  const client = new Client({
+  const config: ClientConfig = {
     connectionString: env.private.POSTGRES_CONNECTION_STRING,
-  });
+    host: env.private.POSTGRES_HOST,
+    user: env.private.POSTGRES_USER,
+    password: env.private.POSTGRES_PASSWORD,
+    database: env.private.POSTGRES_DATABASE,
+    port: env.private.POSTGRES_PORT,
+  };
+
+  const client = new Client(config);
   await client.connect();
   console.log("Initializing database...");
   await client.query(initSql);
   await client.end();
 
   const dialect = new PostgresDialect({
-    pool: new Pool({
-      connectionString: env.private.POSTGRES_CONNECTION_STRING,
-    }),
+    pool: new Pool(config),
   });
 
   db = new Kysely<DB>({ dialect });
