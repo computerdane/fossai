@@ -56,8 +56,8 @@ export const privateDef: PrivateDef = {
     description: "JWT refresh token expiration time (seconds)",
   },
   POSTGRES_CONNECTION_STRING: {
-    value: "postgres://localhost",
-    description: "PostgreSQL connection string WITHOUT the database name",
+    value: "postgres://localhost/fossai",
+    description: "PostgreSQL connection string WITH the database name",
   },
   OPENAI_API_KEY: {
     value: "",

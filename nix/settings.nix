@@ -6,10 +6,7 @@ in
 
 builtins.mapAttrs (
   name:
-  {
-    value,
-    description,
-  }:
+  { description, value, ... }:
   lib.mkOption {
     inherit description;
     type = lib.types.str;

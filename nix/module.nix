@@ -41,10 +41,11 @@ in
 
     services.postgresql = {
       enable = true;
+      ensureDatabases = [ "fossai" ];
       ensureUsers = [
         {
           name = "fossai";
-          ensureClauses.createdb = true;
+          ensureDBOwnership = true;
         }
       ];
     };
@@ -67,7 +68,7 @@ in
       path = [ pkgs.bun ];
       environment = cfg.settings // {
         VITE_BACKEND_BASE_URL = cfg.backendBaseUrl;
-        POSTGRES_CONNECTION_STRING = "postgres:///";
+        POSTGRES_CONNECTION_STRING = "postgres:///fossai";
       };
       preStart = ''
         cd "${cfg.rootDir}"

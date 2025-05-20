@@ -10,39 +10,17 @@ async function getDb() {
 
   const initSql = await Bun.file(`${import.meta.dir}/init.sql`).text();
 
-  {
-    const client = new Client({
-      connectionString: `${env.private.POSTGRES_CONNECTION_STRING}/postgres`,
-    });
-    await client.connect();
-
-    const res = await client.query(
-      "select 1 from pg_database where datname = $1",
-      ["fossai"],
-    );
-    if (res.rowCount === 0) {
-      console.log("Database 'fossai' does not exist. Creating...");
-      await client.query("create database fossai");
-    }
-
-    await client.end();
-  }
-
-  {
-    const client = new Client({
-      connectionString: `${env.private.POSTGRES_CONNECTION_STRING}/fossai`,
-    });
-    await client.connect();
-
-    console.log("Initializing database...");
-    await client.query(initSql);
-
-    await client.end();
-  }
+  const client = new Client({
+    connectionString: env.private.POSTGRES_CONNECTION_STRING,
+  });
+  await client.connect();
+  console.log("Initializing database...");
+  await client.query(initSql);
+  await client.end();
 
   const dialect = new PostgresDialect({
     pool: new Pool({
-      connectionString: `${env.private.POSTGRES_CONNECTION_STRING}/fossai`,
+      connectionString: env.private.POSTGRES_CONNECTION_STRING,
     }),
   });
 
