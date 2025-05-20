@@ -50,7 +50,6 @@ function App() {
     queryKey: ["messages", chatId],
     queryFn: () => getMessages(headers, chatId!),
     enabled: !!chatId,
-    staleTime: Infinity,
   });
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
