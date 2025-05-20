@@ -63,6 +63,7 @@ const privateDef: PrivateDef = {
     description: "Base URL of OpenAI API endpoint",
   },
   EMAIL_VALIDATION_REGEX: {
+    // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/email#basic_validation
     value:
       /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
     parser: (v) => new RegExp(v),
