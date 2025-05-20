@@ -7,6 +7,8 @@ type VarDef<T> = {
 const boolParser = (v: string) => !!v;
 
 type PrivateDef = {
+  PRIVATE_CONFIG_FILE: VarDef<string | undefined>;
+  PUBLIC_CONFIG_FILE: VarDef<string | undefined>;
   PORT: VarDef<number>;
   COOKIE_SECRET: VarDef<string>;
   JWT_SECRET: VarDef<string>;
@@ -14,7 +16,6 @@ type PrivateDef = {
   JWT_REFRESH_EXP_SEC: VarDef<number>;
   POSTGRES_CONNECTION_STRING: VarDef<string>;
   OPENAI_API_KEY: VarDef<string>;
-  OPENAI_API_KEY_FILE: VarDef<string>;
   OPENAI_BASE_URL: VarDef<string>;
   EMAIL_VALIDATION_REGEX: VarDef<string>;
   CORS_ORIGIN: VarDef<string[]>;
@@ -32,6 +33,16 @@ type PublicDef = {
 };
 
 export const privateDef: PrivateDef = {
+  PRIVATE_CONFIG_FILE: {
+    value: undefined,
+    description:
+      "JSON file to load configuration from. Options in the config file override environment variables. Private config only.",
+  },
+  PUBLIC_CONFIG_FILE: {
+    value: undefined,
+    description:
+      "JSON file to load configuration from. Options in the config file override environment variables. Public config only.",
+  },
   PORT: {
     value: 3000,
     parser: parseInt,
@@ -62,10 +73,6 @@ export const privateDef: PrivateDef = {
   OPENAI_API_KEY: {
     value: "",
     description: "OpenAI API key",
-  },
-  OPENAI_API_KEY_FILE: {
-    value: "",
-    description: "Path to file containing OpenAI API key",
   },
   OPENAI_BASE_URL: {
     value: "https://api.openai.com/v1",
@@ -160,21 +167,25 @@ const env = {
   ) as { [K in keyof PublicDef]: PublicDef[K]["value"] },
 };
 
+type PrivateEnv = typeof env.private;
 export type PublicEnv = typeof env.public;
 
 if (!env.private.OPENAI_API_KEY) {
-  try {
-    if (!env.private.OPENAI_API_KEY_FILE) {
-      throw new Error(
-        "One of OPENAI_API_KEY or OPENAI_API_KEY_FILE must be set!",
-      );
-    }
-    const key = await Bun.file(env.private.OPENAI_API_KEY_FILE).text();
-    env.private.OPENAI_API_KEY = key;
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
-  }
+  console.error("Environment variable OPENAI_API_KEY must be set!");
+  process.exit(1);
+}
+
+if (env.private.PRIVATE_CONFIG_FILE) {
+  const config = (await Bun.file(
+    env.private.PRIVATE_CONFIG_FILE,
+  ).json()) as PrivateEnv;
+  env.private = { ...env.private, ...config };
+}
+if (env.private.PUBLIC_CONFIG_FILE) {
+  const config = (await Bun.file(
+    env.private.PUBLIC_CONFIG_FILE,
+  ).json()) as PublicEnv;
+  env.public = { ...env.public, ...config };
 }
 
 export default env;
