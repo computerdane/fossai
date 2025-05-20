@@ -170,11 +170,6 @@ const env = {
 type PrivateEnv = typeof env.private;
 export type PublicEnv = typeof env.public;
 
-if (!env.private.OPENAI_API_KEY) {
-  console.error("Environment variable OPENAI_API_KEY must be set!");
-  process.exit(1);
-}
-
 if (env.private.PRIVATE_CONFIG_FILE) {
   const config = (await Bun.file(
     env.private.PRIVATE_CONFIG_FILE,
@@ -186,6 +181,11 @@ if (env.private.PUBLIC_CONFIG_FILE) {
     env.private.PUBLIC_CONFIG_FILE,
   ).json()) as PublicEnv;
   env.public = { ...env.public, ...config };
+}
+
+if (!env.private.OPENAI_API_KEY) {
+  console.error("Option OPENAI_API_KEY must be set!");
+  process.exit(1);
 }
 
 export default env;
