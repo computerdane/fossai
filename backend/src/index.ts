@@ -29,7 +29,7 @@ const db = await getDb();
 
 const anon = await db
   .selectFrom("person")
-  .select("id")
+  .selectAll()
   .where("email", "=", "anon")
   .executeTakeFirst();
 if (!anon) {
@@ -67,6 +67,10 @@ const api = new Hono()
     ),
   )
   .get("/me", async (c) => {
+    if (env.public.DISABLE_AUTH) {
+      return c.json(anon);
+    }
+
     const person = await db
       .selectFrom("person")
       .selectAll()
@@ -304,6 +308,10 @@ const app = new Hono()
     },
   )
   .post("/refresh", async (c) => {
+    if (env.public.DISABLE_AUTH) {
+      return c.json({ token: "anon" });
+    }
+
     const refreshToken = await getSignedCookie(
       c,
       env.private.COOKIE_SECRET,

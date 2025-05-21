@@ -19,11 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
-  useEffect(() => {
-    if (!env.DISABLE_AUTH) {
-      tryRefresh();
-    }
-  }, [env.DISABLE_AUTH, tryRefresh]);
+  useEffect(tryRefresh, [tryRefresh]);
 
   useEffect(() => {
     if (token) {
