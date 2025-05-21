@@ -59,7 +59,7 @@ In the `backend` folder, you can use the following command to generate types
 from your local postgres database:
 
 ```sh
-  DATABASE_URL=postgres://localhost/fossai bun kysely-codegen
+  DATABASE_URL=postgres:///fossai bun kysely-codegen
 ```
 
 If the backend server fails to start because of your schema changes, you will
@@ -70,7 +70,7 @@ then try starting the backend server. For example:
   dropdb fossai
   createdb fossai
   psql -d fossai -f src/init.sql
-  DATABASE_URL=postgres://localhost/fossai bun kysely-codegen
+  DATABASE_URL=postgres:///fossai bun kysely-codegen
 ```
 
 Then you should be able to start the backend server again.

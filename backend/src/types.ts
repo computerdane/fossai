@@ -13,6 +13,8 @@ export type Int8 = ColumnType<string, bigint | number | string, bigint | number 
 
 export type MessageRole = "assistant" | "user";
 
+export type Numeric = ColumnType<string, number | string, number | string>;
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Chat {
@@ -32,9 +34,13 @@ export interface Message {
 }
 
 export interface Person {
+  active: Generated<boolean>;
+  created_at: Generated<Timestamp>;
   email: string;
   first_name: string;
   id: Generated<Int8>;
+  login_code: Numeric | null;
+  login_code_expires_at: Generated<Timestamp>;
 }
 
 export interface RefreshToken {

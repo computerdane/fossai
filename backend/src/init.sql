@@ -1,7 +1,11 @@
 create table if not exists person (
     id bigint primary key generated always as identity,
+    created_at timestamp not null default now(),
+    active boolean not null default false,
     first_name text not null,
-    email text unique not null
+    email text unique not null,
+    login_code numeric(6, 0),
+    login_code_expires_at timestamp not null default now()
 );
 
 create table if not exists chat (

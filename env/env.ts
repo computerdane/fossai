@@ -19,6 +19,9 @@ type PrivateDef = {
   OPENAI_BASE_URL: VarDef<string>;
   EMAIL_VALIDATION_REGEX: VarDef<string>;
   CORS_ORIGIN: VarDef<string[]>;
+  EMAIL_TRANSPORT_CONFIG_JSON: VarDef<string>;
+  EMAIL_FROM_ADDRESS: VarDef<string>;
+  LOGIN_CODE_EXP_SEC: VarDef<number>;
 };
 type PublicDef = {
   SITE_TITLE: VarDef<string>;
@@ -88,6 +91,19 @@ export const privateDef: PrivateDef = {
     value: ["http://localhost:5173"],
     parser: (v) => v.split(" "),
     description: "Space-separated list of frontend URL(s)",
+  },
+  EMAIL_TRANSPORT_CONFIG_JSON: {
+    value: "",
+    description:
+      "Configuration for the email client as JSON representing the argument passed to nodemailer.createTransport(). See https://nodemailer.com/usage",
+  },
+  EMAIL_FROM_ADDRESS: {
+    value: "",
+    description: "Email addres from which login emails are sent",
+  },
+  LOGIN_CODE_EXP_SEC: {
+    value: 5 * 50,
+    description: "Login code expiration time (seconds)",
   },
 };
 export const publicDef: PublicDef = {
@@ -181,11 +197,6 @@ if (env.private.PUBLIC_CONFIG_FILE) {
     env.private.PUBLIC_CONFIG_FILE,
   ).json()) as PublicEnv;
   env.public = { ...env.public, ...config };
-}
-
-if (!env.private.OPENAI_API_KEY) {
-  console.error("Option OPENAI_API_KEY must be set!");
-  process.exit(1);
 }
 
 export default env;

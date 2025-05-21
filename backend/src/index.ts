@@ -9,6 +9,32 @@ import { createMiddleware } from "hono/factory";
 import { proxy } from "hono/proxy";
 import error from "./error";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
+import { createTransport } from "nodemailer";
+
+if (!env.private.OPENAI_API_KEY) {
+  console.error("Option OPENAI_API_KEY must be set!");
+  process.exit(1);
+}
+if (!env.public.DISABLE_AUTH) {
+  if (!env.private.EMAIL_TRANSPORT_CONFIG_JSON) {
+    console.error(
+      "Option EMAIL_TRANSPORT_CONFIG_JSON must be set when DISABLE_AUTH=false!",
+    );
+    process.exit(1);
+  }
+  if (!env.private.EMAIL_FROM_ADDRESS) {
+    console.error(
+      "Option EMAIL_FROM_ADDRESS must be set when DISABLE_AUTH=false!",
+    );
+    process.exit(1);
+  }
+  try {
+    JSON.parse(env.private.EMAIL_TRANSPORT_CONFIG_JSON);
+  } catch (e) {
+    console.error("Option EMAIL_TRANSPORT_CONFIG_JSON has invalid JSON: ", e);
+    process.exit(1);
+  }
+}
 
 type SessionJwt = {
   personId: string;
@@ -34,6 +60,27 @@ const anon = await db
   .executeTakeFirst();
 if (!anon) {
   throw new Error("The 'anon' user does not exist!");
+}
+
+// TODO: I dare anyone to figure out how to get this working without the "any" type
+let mailer: any;
+if (!env.public.DISABLE_AUTH) {
+  mailer = createTransport(JSON.parse(env.private.EMAIL_TRANSPORT_CONFIG_JSON));
+}
+
+/** Generate a unique 6-digit code for the given person */
+async function generateLoginCode(personId: string) {
+  let code = Math.floor(Math.random() * 900000) + 100000;
+  const expiresAt = new Date(getExpiry(env.private.LOGIN_CODE_EXP_SEC) * 1000);
+
+  const { login_code } = await db
+    .updateTable("person")
+    .set({ login_code: code, login_code_expires_at: expiresAt })
+    .where("id", "=", personId)
+    .returning("login_code")
+    .executeTakeFirstOrThrow();
+
+  return login_code!;
 }
 
 const openaiHeaders = {
@@ -245,6 +292,40 @@ const app = new Hono()
   .route("/api", api)
   .get("/env", (c) => c.json(env.public))
   .post(
+    "/login_code",
+    zValidator("json", z.object({ email: z.string().nonempty() })),
+    async (c) => {
+      if (env.public.DISABLE_AUTH) {
+        return c.body(null, 204);
+      }
+
+      const { email } = c.req.valid("json");
+
+      const person = await db
+        .selectFrom("person")
+        .select(["id", "active", "email"])
+        .where("email", "=", email)
+        .executeTakeFirst();
+
+      if (person) {
+        const code = await generateLoginCode(person.id);
+
+        const info = await mailer.sendMail({
+          from: `"${env.public.LOGIN_PAGE_TITLE} Email Login" <${env.private.EMAIL_FROM_ADDRESS}>`,
+          to: person.email,
+          subject: `Your ${env.public.LOGIN_PAGE_TITLE} login code`,
+          html: `Your ${env.public.LOGIN_PAGE_TITLE} login code is: <b>${code}</b>`,
+        });
+
+        console.log("Sent email: ", info.messageId);
+
+        return c.json({ sent: true }, 201);
+      }
+
+      return error(c, 401);
+    },
+  )
+  .post(
     "/login",
     zValidator("json", z.object({ email: z.string().nonempty() })),
     async (c) => {
@@ -252,7 +333,7 @@ const app = new Hono()
 
       const person = await db
         .selectFrom("person")
-        .select("id")
+        .select(["id", "active"])
         .where("email", "=", email)
         .executeTakeFirst();
 
